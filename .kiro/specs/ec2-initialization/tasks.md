@@ -13,7 +13,7 @@
   - Verify installed utilities are available
   - _Requirements: 7.1, 7.2_
 
-- [ ] 3. Checkpoint - Verify system update
+- [x] 3. Checkpoint - Verify system update
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. Implement Nginx and Certbot installation
