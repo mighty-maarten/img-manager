@@ -6,7 +6,7 @@
   - Set up output redirection to `/var/log/user-data.log`
   - _Requirements: 6.1, 6.3, 6.4_
 
-- [ ] 2. Implement system update module
+- [x] 2. Implement system update module
   - Add commands to update dnf package manager
   - Install base utilities (wget, git, unzip, tar, gzip, jq, htop, vim, cronie, logrotate)
   - Use `--skip-broken` flag for package conflicts
