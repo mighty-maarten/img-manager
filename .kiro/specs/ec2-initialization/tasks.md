@@ -16,7 +16,7 @@
 - [x] 3. Checkpoint - Verify system update
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement Nginx and Certbot installation
+- [x] 4. Implement Nginx and Certbot installation
   - Add commands to install nginx and python3-certbot-nginx packages
   - Enable and start nginx service
   - Create initial HTTP-only nginx configuration
@@ -25,10 +25,10 @@
   - Verify certbot command is available
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 7.1, 7.2_
 
-- [ ] 5. Checkpoint - Verify Nginx installation
+- [x] 5. Checkpoint - Verify Nginx installation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement PostgreSQL 15 installation
+- [x] 6. Implement PostgreSQL 15 installation
   - Add commands to install postgresql15 and postgresql15-server packages
   - Initialize database cluster with `initdb`
   - Enable and start postgresql service

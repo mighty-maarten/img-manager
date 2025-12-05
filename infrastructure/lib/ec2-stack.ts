@@ -289,8 +289,18 @@ export class Ec2Stack extends cdk.Stack {
             .map(([key, value]) => `${key}=${value}`)
             .join('\n');
 
+        // ============================================
+        // USERDATA SCRIPT VERSION CONTROL
+        // ============================================
+        // Change this version number ONLY when you want to replace the EC2 instance
+        // This allows you to modify the script below without triggering instance replacement
+        const USERDATA_VERSION = 'v1.0.0';
+        
         // Initialize UserData script with logging setup
+        // NOTE: To comment out sections during development, wrap them in /* */ block comments
+        // or use conditional logic in the bash script itself
         userData.addCommands(
+            `# UserData Version: ${USERDATA_VERSION}`,
             '#!/bin/bash',
             'set -e',
             '',
@@ -372,10 +382,147 @@ export class Ec2Stack extends cdk.Stack {
             '',
             'log "✓ All base utilities verified successfully"',
             'log "System update module completed"',
+            '',
+            '# ==========================================',
+            '# Nginx and Certbot Installation Module',
+            '# ==========================================',
+            'log "Starting Nginx and Certbot installation..."',
+            '',
+            '# Check if nginx is already installed',
+            'if command -v nginx >/dev/null 2>&1; then',
+            '    log "⚠ Nginx already installed, skipping installation"',
+            'else',
+            '    log "Installing nginx and certbot packages..."',
+            '    if dnf install -y nginx python3-certbot-nginx; then',
+            '        log "✓ Nginx and Certbot packages installed successfully"',
+            '    else',
+            '        log "✗ Error: Failed to install Nginx and Certbot"',
+            '        exit 1',
+            '    fi',
+            'fi',
+            '',
+            '# Enable nginx service',
+            'log "Enabling Nginx service..."',
+            'if systemctl enable nginx; then',
+            '    log "✓ Nginx service enabled for automatic startup"',
+            'else',
+            '    log "✗ Error: Failed to enable Nginx service"',
+            '    exit 1',
+            'fi',
+            '',
+            '# Create Certbot webroot directory',
+            'log "Creating Certbot webroot directory..."',
+            'mkdir -p /var/www/certbot',
+            'chown -R nginx:nginx /var/www/certbot',
+            'chmod 755 /var/www/certbot',
+            'log "✓ Certbot webroot directory created at /var/www/certbot"',
+            '',
+            '# Create initial HTTP-only nginx configuration',
+            'log "Creating initial HTTP-only nginx configuration..."',
+            'cat > /etc/nginx/nginx.conf << \'EOF\'',
+            'user nginx;',
+            'worker_processes auto;',
+            'error_log /var/log/nginx/error.log notice;',
+            'pid /run/nginx.pid;',
+            '',
+            'events {',
+            '    worker_connections 1024;',
+            '}',
+            '',
+            'http {',
+            '    log_format main \'$remote_addr - $remote_user [$time_local] "$request" \'',
+            '                    \'$status $body_bytes_sent "$http_referer" \'',
+            '                    \'"$http_user_agent" "$http_x_forwarded_for"\';',
+            '',
+            '    access_log /var/log/nginx/access.log main;',
+            '',
+            '    sendfile            on;',
+            '    tcp_nopush          on;',
+            '    keepalive_timeout   65;',
+            '    types_hash_max_size 4096;',
+            '',
+            '    include             /etc/nginx/mime.types;',
+            '    default_type        application/octet-stream;',
+            '',
+            '    server {',
+            '        listen 80;',
+            '        server_name _;',
+            '',
+            '        # Certbot ACME challenge location',
+            '        location /.well-known/acme-challenge/ {',
+            '            root /var/www/certbot;',
+            '        }',
+            '',
+            '        # Default location',
+            '        location / {',
+            '            return 200 \"Nginx is running. SSL will be configured after Certbot setup.\";',
+            '            add_header Content-Type text/plain;',
+            '        }',
+            '    }',
+            '}',
+            'EOF',
+            '',
+            'log "✓ Initial nginx configuration created"',
+            '',
+            '# Start nginx service',
+            'log "Starting Nginx service..."',
+            'if systemctl start nginx; then',
+            '    log "✓ Nginx service started successfully"',
+            'else',
+            '    log "✗ Error: Failed to start Nginx service"',
+            '    exit 1',
+            'fi',
+            '',
+            '# Verify nginx service is active',
+            'log "Verifying Nginx service status..."',
+            'if systemctl is-active --quiet nginx; then',
+            '    log "✓ Nginx service is active and running"',
+            'else',
+            '    log "✗ Error: Nginx service is not active"',
+            '    exit 1',
+            'fi',
+            '',
+            '# Verify certbot command is available',
+            'log "Verifying Certbot installation..."',
+            'if command -v certbot >/dev/null 2>&1; then',
+            '    CERTBOT_VERSION=$(certbot --version 2>&1 | head -n1)',
+            '    log "✓ Certbot is available: $CERTBOT_VERSION"',
+            'else',
+            '    log "✗ Error: Certbot command not found"',
+            '    exit 1',
+            'fi',
+            '',
+            'log "✓ Nginx and Certbot installation module completed"',
             ''
         );
 
-        // EC2 Instance (recreated for CodeDeploy agent fix)
+        // ============================================
+        // INCREMENTAL DEVELOPMENT INSTRUCTIONS
+        // ============================================
+        // To add new installation modules without replacing the EC2 instance:
+        // 1. Add new userData.addCommands() blocks below this comment
+        // 2. Run: npm run build && npx cdk deploy img-manager-prod-ec2-stack --profile mighty
+        // 3. The new commands will be appended to the UserData script
+        // 4. IMPORTANT: UserData only runs on FIRST BOOT, so changes won't affect existing instances
+        //    unless you manually run the commands via SSM or SSH
+        //
+        // To test changes on an existing instance:
+        // - SSH into the instance and run commands manually
+        // - Or use AWS Systems Manager Session Manager
+        // - Or create a new test script and run it via SSM Run Command
+        //
+        // To force a full instance replacement (use sparingly):
+        // - Change the USERDATA_VERSION constant above
+        // - This will create a new instance with the updated UserData
+        // ============================================
+
+        // ============================================
+        // EC2 INSTANCE CREATION
+        // ============================================
+        // COMMENT OUT THIS BLOCK to deploy stack changes without recreating the instance
+        // UNCOMMENT to create/recreate the instance with updated UserData
+        // ============================================
+        
         this.instance = new Instance(this, identifyResource(resourcePrefix, 'ec2-instance-v2'), {
             instanceName: identifyResource(resourcePrefix, 'ec2-instance'),
             instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
@@ -413,7 +560,17 @@ export class Ec2Stack extends cdk.Stack {
             identifyResource(resourcePrefix, 'deployment-target'),
             'true'
         );
+        
+        // ============================================
+        // END EC2 INSTANCE CREATION
+        // ============================================
 
+        // ============================================
+        // ELASTIC IP AND ASSOCIATION
+        // ============================================
+        // COMMENT OUT if instance creation is commented out above
+        // ============================================
+        
         // Elastic IP
         this.elasticIp = new CfnEIP(this, identifyResource(resourcePrefix, 'elastic-ip'), {
             domain: 'vpc',
@@ -430,6 +587,10 @@ export class Ec2Stack extends cdk.Stack {
             eip: this.elasticIp.ref,
             instanceId: this.instance.instanceId,
         });
+        
+        // ============================================
+        // END ELASTIC IP AND ASSOCIATION
+        // ============================================
 
         // Route 53 A Record
         const hostedZone = HostedZone.fromLookup(
