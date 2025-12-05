@@ -1,0 +1,23 @@
+meta {
+  name: Create Collection
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/collections
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "url": "https://example.com/collection",
+    "tags": ["tag1", "tag2"],
+    "labelIds": ["label-id-1", "label-id-2"]
+  }
+}

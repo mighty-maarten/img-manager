@@ -1,0 +1,57 @@
+/**
+ ************ NOTE ************
+ * We use PrimeNg with a customized theme. Colors and styling are defined in .ts files, and are passed as variables to PrimeNg.
+ * For global app styling, we will still use CSS, but we will use the CSS variables defined in the PrimeNg theme.
+*/
+@import url('primeicons/primeicons.css');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    font-family: $font-family-standard;
+    font-weight: $font-weight-normal;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+
+    @include maxb($breakpoint-lg) {
+        font-size: $font-size-base;
+    }
+}
+
+#app {
+    flex: 1;
+    display: flex;
+}
+
+p {
+    margin: 0;
+}
+
+.bold {
+    font-weight: $font-weight-bold;
+}
+
+h1,
+h2,
+h3,
+h4,
+ul {
+    margin: 0;
+}
+
+// Make PrimeVue ConfirmDialog respect newlines
+.p-confirmdialog-message {
+    white-space: pre-line;
+    line-height: 26px;
+}

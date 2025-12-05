@@ -1,0 +1,48 @@
+meta {
+  name: Get Processed Images
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host}}/processed-images/processed-images?take=10&skip=0
+  body: none
+  auth: bearer
+}
+
+params:query {
+  take: 10
+  skip: 0
+  ~sort: {"field":"createdOn","order":-1}
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get Processed Images
+
+  Fetches a paginated list of processed images from the database.
+
+  ## Query Parameters
+  - `take` (optional): Number of records to fetch (limit)
+  - `skip` (optional): Number of records to skip (offset)
+  - `sort` (optional): JSON string for sorting, e.g., `{"field":"createdOn","order":-1}`
+    - `order: 1` for ascending
+    - `order: -1` for descending (default)
+
+  ## Response
+  Returns a `PagedResult` with:
+  - `results`: Array of processed images with presigned URLs (valid for 1 hour)
+  - `count`: Total number of processed images
+
+  Each processed image includes:
+  - `id`: UUID
+  - `filename`: Filename
+  - `bucket`: Storage bucket name
+  - `key`: Storage key/path
+  - `url`: Presigned URL (expires in 1 hour)
+  - `createdOn`: Creation timestamp
+  - `lastUpdatedOn`: Last update timestamp
+}

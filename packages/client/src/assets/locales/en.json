@@ -1,0 +1,200 @@
+{
+    "site": {
+        "title": "IMG Manager"
+    },
+    "nav": {
+        "labels": "Labels",
+        "collections": "Collections",
+        "processedImages": "Processed Images"
+    },
+    "labels": {
+        "title": "Labels",
+        "create": "Create Label",
+        "table": {
+            "name": "Name",
+            "createdOn": "Created On",
+            "actions": "Actions"
+        },
+        "add": {
+            "title": "Create Label",
+            "back": "Back to Labels",
+            "name": "Label Name",
+            "save": "Create Label",
+            "success": "Label created successfully",
+            "error": "Failed to create Label"
+        },
+        "edit": {
+            "title": "Edit Label",
+            "back": "Back to Labels",
+            "name": "Label Name",
+            "save": "Save Changes",
+            "success": "Label updated successfully",
+            "error": "Failed to update Label",
+            "notFound": "Label not found"
+        },
+        "delete": {
+            "title": "Delete Label",
+            "description": "Are you sure you want to delete the label \"{name}\"?\nThis action cannot be undone.",
+            "success": "Label deleted successfully"
+        }
+    },
+    "collections": {
+        "title": "Collections",
+        "create": "Add Collections",
+        "filter": {
+            "all": "All",
+            "selectStatus": "Select",
+            "selectLabels": "Select",
+            "notSet": "Not set",
+            "clearAll": "Clear filters"
+        },
+        "table": {
+            "title": "Title",
+            "url": "URL",
+            "labels": "Labels",
+            "scraped": "Scraped",
+            "stored": "Stored",
+            "processed": "Processed",
+            "createdOn": "Created On",
+            "actions": "Actions"
+        },
+        "add": {
+            "title": "Add Collections",
+            "back": "Back to Collections",
+            "urls": "URLs (one per line)",
+            "urlsPlaceholder": "https://example.com/image1.jpg\nhttps://example.com/image2.jpg\nhttps://example.com/image3.jpg",
+            "labels": "Labels",
+            "labelsPlaceholder": "Select",
+            "save": "Add Collections",
+            "success": "{count} collection(s) created successfully",
+            "partialSuccess": "{created} collection(s) created, {failed} failed",
+            "error": "Failed to add collections",
+            "results": {
+                "title": "Results",
+                "created": "Created",
+                "failed": "Failed"
+            }
+        },
+        "edit": {
+            "title": "Edit Collection",
+            "back": "Back to Collections",
+            "url": "URL",
+            "urlPlaceholder": "https://example.com/image.jpg",
+            "labels": "Labels",
+            "labelsPlaceholder": "Select",
+            "save": "Save Changes",
+            "success": "Collection updated successfully",
+            "error": "Failed to update collection",
+            "notFound": "Collection not found"
+        },
+        "delete": {
+            "title": "Delete Collection",
+            "description": "Are you sure you want to delete the collection \"{url}\"?\nThis action cannot be undone.",
+            "success": "Collection deleted successfully"
+        },
+        "detail": {
+            "title": "Collection Details",
+            "tabs": {
+                "runs": "Runs",
+                "scrape": "Scrape"
+            }
+        },
+        "runs": {
+            "selectRun": "Select a processing run",
+            "noRuns": "No processing runs available",
+            "imagesCount": "Images",
+            "noImages": "No images found for this run"
+        },
+        "scrape": {
+            "tooltip": "Scrape images from this collection",
+            "sizePreset": "Size Preset",
+            "scrapingMode": "Scraping Mode",
+            "scrape": "Scrape Images",
+            "success": "Collection scraped successfully",
+            "error": "Failed to scrape collection",
+            "presets": {
+                "all": "All Sizes",
+                "small": "Small",
+                "medium": "Medium",
+                "large": "Large",
+                "xlarge": "Extra Large"
+            },
+            "modes": {
+                "light": "Light",
+                "heavy": "Heavy"
+            },
+            "status": {
+                "scraped": "Yes",
+                "scrapedLong": "Scraped",
+                "notScraped": "No",
+                "notScrapedLong": "Not Scraped"
+            }
+        },
+        "store": {
+            "tooltip": "Store images from this collection",
+            "success": "Storing started successfully",
+            "status": {
+                "stored": "Yes",
+                "notStored": "No"
+            }
+        },
+        "process": {
+            "status": {
+                "processed": "Yes",
+                "notProcessed": "No"
+            }
+        }
+    },
+    "auth": {
+        "login": {
+            "title": "Login",
+            "email": "Email Address",
+            "password": "Password",
+            "submit": "Login",
+            "error": "Login failed. Please check your credentials and try again."
+        },
+        "logout": "Logout"
+    },
+    "sync": {
+        "title": "Sync",
+        "successMessage": "{processed} images synced, {skipped} skipped",
+        "errorMessage": "{processed} images synced, {skipped} skipped, {failed} failed"
+    },
+    "processedImages": {
+        "title": "Processed Images",
+        "empty": "No processed images found",
+        "filter": {
+            "label": "Hidden Status",
+            "all": "All",
+            "hidden": "Hidden",
+            "notHidden": "Not Hidden",
+            "selectStatus": "Select",
+            "flaggedStatus": "Flagged Status",
+            "flagged": "Flagged",
+            "notFlagged": "Not Flagged",
+            "minimalScore": "Minimal Score",
+            "labels": "Labels",
+            "selectLabels": "Select",
+            "notSet": "Not set",
+            "clearAll": "Clear filters"
+        },
+        "status": {
+            "hidden": "Hidden",
+            "notHidden": "Visible",
+            "flagged": "Flagged",
+            "notFlagged": "Not Flagged"
+        },
+        "detail": {
+            "back": "Back to Images",
+            "previous": "Previous",
+            "next": "Next",
+            "toggleHidden": "Toggle Hidden Status",
+            "score": "Score",
+            "setScore": "Set image score (1-5 stars)",
+            "zoomFit": "Fit to Screen",
+            "zoomActual": "Actual Size (100%)",
+            "notFound": "Image not found",
+            "imageInfo": "{filename}"
+        }
+    }
+}

@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE public.scrapes
+ADD COLUMN downloaded BOOLEAN NOT NULL DEFAULT false;
+
+COMMIT;

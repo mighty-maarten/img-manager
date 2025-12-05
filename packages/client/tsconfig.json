@@ -1,0 +1,29 @@
+{
+    "files": [],
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "composite": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "strict": true,
+        "target": "ES2021",
+        "paths": {
+            "@/*": ["./src/*"]
+        }
+    },
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        },
+        {
+            "path": "./tsconfig.app.json"
+        },
+        {
+            "path": "./tsconfig.vitest.json"
+        }
+    ]
+}

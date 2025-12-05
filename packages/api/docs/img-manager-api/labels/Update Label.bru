@@ -1,0 +1,25 @@
+meta {
+  name: Update Label
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/labels/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+params:path {
+  id: label-id
+}
+
+body:json {
+  {
+    "name": "Updated Label Name"
+  }
+}

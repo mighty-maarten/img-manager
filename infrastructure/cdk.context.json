@@ -1,0 +1,20 @@
+{
+  "availability-zones:account=964213726654:region=eu-west-1": [
+    "eu-west-1a",
+    "eu-west-1b",
+    "eu-west-1c"
+  ],
+  "hosted-zone:account=964213726654:domainName=mighty.be:region=eu-west-1": {
+    "Id": "/hostedzone/ZL2O5YVEVPG1G",
+    "Name": "mighty.be."
+  },
+  "hosted-zone:account=964213726654:domainName=img-manager.mighty.be:region=eu-west-1": {
+    "Id": "/hostedzone/Z0753257114MTTX14T892",
+    "Name": "img-manager.mighty.be."
+  },
+  "availability-zones:account=645615747208:region=eu-west-1": [
+    "eu-west-1a",
+    "eu-west-1b",
+    "eu-west-1c"
+  ]
+}

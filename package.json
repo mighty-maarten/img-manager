@@ -1,0 +1,36 @@
+{
+  "name": "img-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for img-manager application (client and API)",
+  "workspaces": [
+    "packages/client",
+    "packages/api"
+  ],
+  "scripts": {
+    "build": "npm run validate:env && bash scripts/build.sh",
+    "build:client": "npm run validate:env:client && npm run build --workspace=packages/client",
+    "build:api": "npm run validate:env:api && npm run build --workspace=packages/api",
+    "dev": "npm run dev:client & npm run dev:api",
+    "dev:client": "npm run dev --workspace=packages/client",
+    "dev:api": "npm run start:local --workspace=packages/api",
+    "test": "npm run test:client && npm run test:api",
+    "test:client": "npm run test:unit --workspace=packages/client",
+    "test:api": "npm run test --workspace=packages/api",
+    "lint": "npm run lint --workspaces",
+    "format": "npm run format --workspaces",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist packages/api/static"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "prettier": "^3.3.3",
+    "eslint": "^9.14.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "volta": {
+    "node": "22.15.1"
+  }
+}

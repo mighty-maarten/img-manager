@@ -1,0 +1,27 @@
+meta {
+  name: Update Collection
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{host}}/collections/:id
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+params:path {
+  id: collection-id
+}
+
+body:json {
+  {
+    "url": "https://example.com/updated-collection",
+    "tags": ["new-tag"],
+    "labelIds": ["label-id-1"]
+  }
+}

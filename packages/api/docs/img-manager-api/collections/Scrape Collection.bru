@@ -1,0 +1,26 @@
+meta {
+  name: Scrape Collection
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{host}}/collections/:collectionId/scrape
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+params:path {
+  collectionId: collection-id
+}
+
+body:json {
+  {
+    "sizePreset": "medium",
+    "scrapingMode": "light"
+  }
+}

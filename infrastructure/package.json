@@ -1,0 +1,27 @@
+{
+    "name": "infrastructure",
+    "version": "0.1.0",
+    "bin": {
+        "infrastructure": "bin/infrastructure.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "cdk": "cdk",
+        "promote-guardrail-version": "ts-node scripts/promote-guardrail.ts"
+    },
+    "devDependencies": {
+        "@types/node": "20.14.9",
+        "aws-cdk": "2.1030.0",
+        "ts-node": "^10.9.2",
+        "typescript": "~5.5.3"
+    },
+    "dependencies": {
+        "@aws-sdk/client-bedrock": "^3.908.0",
+        "@aws-sdk/client-cloudformation": "^3.908.0",
+        "@aws-sdk/client-ssm": "^3.908.0",
+        "aws-cdk-lib": "2.219.0",
+        "constructs": "^10.0.0",
+        "source-map-support": "^0.5.21"
+    }
+}

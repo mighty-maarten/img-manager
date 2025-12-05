@@ -1,0 +1,195 @@
+{
+    "site": {
+        "title": "IMG Manager"
+    },
+    "nav": {
+        "labels": "Labels",
+        "collections": "Collecties",
+        "processedImages": "Verwerkte Afbeeldingen"
+    },
+    "labels": {
+        "title": "Labels",
+        "create": "Label Aanmaken",
+        "table": {
+            "name": "Naam",
+            "createdOn": "Aangemaakt op",
+            "actions": "Acties"
+        },
+        "add": {
+            "title": "Label Aanmaken",
+            "back": "Terug naar Labels",
+            "name": "Labelnaam",
+            "save": "Label Aanmaken",
+            "success": "Label succesvol aangemaakt",
+            "error": "Label aanmaken mislukt"
+        },
+        "edit": {
+            "title": "Label Bewerken",
+            "back": "Terug naar Labels",
+            "name": "Labelnaam",
+            "save": "Wijzigingen Opslaan",
+            "success": "Label succesvol bijgewerkt",
+            "error": "Label bijwerken mislukt",
+            "notFound": "Label niet gevonden"
+        },
+        "delete": {
+            "title": "Label Verwijderen",
+            "description": "Weet je zeker dat je het label \"{name}\" wilt verwijderen?\nDeze actie kan niet ongedaan worden gemaakt.",
+            "success": "Label succesvol verwijderd"
+        }
+    },
+    "collections": {
+        "title": "Collecties",
+        "create": "Collectie Aanmaken",
+        "filter": {
+            "all": "Alle",
+            "selectStatus": "Selecteer status",
+            "selectLabels": "Selecteer labels",
+            "notSet": "Niet ingesteld",
+            "clearAll": "Filters wissen"
+        },
+        "table": {
+            "title": "Titel",
+            "url": "URL",
+            "labels": "Labels",
+            "scraped": "Gescrapet",
+            "stored": "Opgeslagen",
+            "processed": "Verwerkt",
+            "createdOn": "Aangemaakt op",
+            "actions": "Acties"
+        },
+        "add": {
+            "title": "Collectie Aanmaken",
+            "back": "Terug naar Collecties",
+            "url": "URL",
+            "urlPlaceholder": "https://voorbeeld.nl/afbeelding.jpg",
+            "labels": "Labels",
+            "labelsPlaceholder": "Selecteer labels",
+            "save": "Collectie Aanmaken",
+            "success": "Collectie succesvol aangemaakt",
+            "error": "Collectie aanmaken mislukt"
+        },
+        "edit": {
+            "title": "Collectie Bewerken",
+            "back": "Terug naar Collecties",
+            "url": "URL",
+            "urlPlaceholder": "https://voorbeeld.nl/afbeelding.jpg",
+            "labels": "Labels",
+            "labelsPlaceholder": "Selecteer labels",
+            "save": "Wijzigingen Opslaan",
+            "success": "Collectie succesvol bijgewerkt",
+            "error": "Collectie bijwerken mislukt",
+            "notFound": "Collectie niet gevonden"
+        },
+        "delete": {
+            "title": "Collectie Verwijderen",
+            "description": "Weet je zeker dat je de collectie \"{url}\" wilt verwijderen?\nDeze actie kan niet ongedaan worden gemaakt.",
+            "success": "Collectie succesvol verwijderd"
+        },
+        "detail": {
+            "title": "Collectie Details",
+            "tabs": {
+                "runs": "Runs",
+                "scrape": "Scrapen"
+            }
+        },
+        "runs": {
+            "selectRun": "Selecteer een verwerkingsrun",
+            "noRuns": "Geen verwerkingsruns beschikbaar",
+            "imagesCount": "Afbeeldingen",
+            "noImages": "Geen afbeeldingen gevonden voor deze run"
+        },
+        "scrape": {
+            "tooltip": "Afbeeldingen scrapen van deze collectie",
+            "back": "Terug naar Collecties",
+            "sizePreset": "Formaat Voorinstelling",
+            "scrapingMode": "Scraping Modus",
+            "scrape": "Afbeeldingen Scrapen",
+            "success": "Collectie succesvol gescrapet",
+            "error": "Collectie scrapen mislukt",
+            "presets": {
+                "all": "Alle Formaten",
+                "small": "Klein",
+                "medium": "Gemiddeld",
+                "large": "Groot",
+                "xlarge": "Extra Groot"
+            },
+            "modes": {
+                "light": "Licht",
+                "heavy": "Zwaar"
+            },
+            "status": {
+                "scraped": "Ja",
+                "scrapedLong": "Gescrapet",
+                "notScraped": "Nee",
+                "notScrapedLong": "Niet Gescrapet"
+            }
+        },
+        "store": {
+            "tooltip": "Afbeeldingen opslaan van deze collectie",
+            "success": "Opslag succesvol gestart",
+            "status": {
+                "stored": "Ja",
+                "notStored": "Nee"
+            }
+        },
+        "process": {
+            "status": {
+                "processed": "Ja",
+                "notProcessed": "Nee"
+            }
+        }
+    },
+    "auth": {
+        "login": {
+            "title": "Aanmelden",
+            "email": "E-mailadres",
+            "password": "Wachtwoord",
+            "submit": "Aanmelden",
+            "error": "Aanmelden mislukt. Controleer uw gegevens en probeer het opnieuw."
+        },
+        "logout": "Uitloggen"
+    },
+    "sync": {
+        "title": "Synchroniseren",
+        "successMessage": "{processed} afbeeldingen gesynchroniseerd, {skipped} overgeslagen",
+        "errorMessage": "{processed} afbeeldingen gesynchroniseerd, {skipped} overgeslagen, {failed} mislukt"
+    },
+    "processedImages": {
+        "title": "Verwerkte Afbeeldingen",
+        "empty": "Geen verwerkte afbeeldingen gevonden",
+        "filter": {
+            "label": "Verborgen Status",
+            "all": "Alle",
+            "hidden": "Verborgen",
+            "notHidden": "Niet Verborgen",
+            "selectStatus": "Selecteer status",
+            "flaggedStatus": "Gemarkeerde Status",
+            "flagged": "Gemarkeerd",
+            "notFlagged": "Niet Gemarkeerd",
+            "minimalScore": "Minimale Score",
+            "labels": "Labels",
+            "selectLabels": "Selecteer labels",
+            "notSet": "Niet ingesteld",
+            "clearAll": "Filters wissen"
+        },
+        "status": {
+            "hidden": "Verborgen",
+            "notHidden": "Zichtbaar",
+            "flagged": "Gemarkeerd",
+            "notFlagged": "Niet Gemarkeerd"
+        },
+        "detail": {
+            "back": "Terug naar Afbeeldingen",
+            "previous": "Vorige",
+            "next": "Volgende",
+            "toggleHidden": "Verborgen Status Omschakelen",
+            "score": "Score",
+            "setScore": "Stel afbeeldingsscore in (1-5 sterren)",
+            "zoomFit": "Aanpassen aan Scherm",
+            "zoomActual": "Werkelijke Grootte (100%)",
+            "notFound": "Afbeelding niet gevonden",
+            "imageInfo": "{filename}"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Get Collection
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{host}}/collections/:id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+params:path {
+  id: collection-id
+}

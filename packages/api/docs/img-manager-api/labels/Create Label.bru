@@ -1,0 +1,21 @@
+meta {
+  name: Create Label
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/labels
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Nature"
+  }
+}

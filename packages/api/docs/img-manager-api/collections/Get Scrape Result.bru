@@ -1,0 +1,20 @@
+meta {
+  name: Get Scrape Result
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host}}/collections/:collectionId/scrape/:scrapeId
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+params:path {
+  collectionId: collection-id
+  scrapeId: scrape-id
+}
