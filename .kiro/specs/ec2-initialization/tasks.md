@@ -62,7 +62,7 @@
   - Verify pm2-ec2-user service is enabled
   - _Requirements: 4.1, 4.2, 4.3, 7.2, 7.3_
 
-- [ ] 11. Checkpoint - Verify PM2 installation
+- [x] 11. Checkpoint - Verify PM2 installation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 12. Implement CodeDeploy agent installation
