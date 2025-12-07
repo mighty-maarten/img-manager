@@ -40,7 +40,7 @@
 - [x] 7. Checkpoint - Verify PostgreSQL installation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement NVM and Node.js installation
+- [x] 8. Implement NVM and Node.js installation
   - Download and install NVM for ec2-user
   - Configure shell environment to load NVM
   - Install Node.js version 22.15.1
@@ -49,7 +49,7 @@
   - Verify correct Node.js version is installed
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 7.3, 7.4_
 
-- [ ] 9. Checkpoint - Verify Node.js installation
+- [x] 9. Checkpoint - Verify Node.js installation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 10. Implement PM2 installation and configuration
