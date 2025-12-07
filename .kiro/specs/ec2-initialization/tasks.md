@@ -65,7 +65,7 @@
 - [x] 11. Checkpoint - Verify PM2 installation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Implement CodeDeploy agent installation
+- [x] 12. Implement CodeDeploy agent installation
   - Install Ruby runtime
   - Download CodeDeploy agent installer for the instance region
   - Install CodeDeploy agent

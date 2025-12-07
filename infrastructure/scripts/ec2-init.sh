@@ -718,3 +718,99 @@ else
 fi
 
 log "✓ PM2 installation and configuration module completed"
+
+
+# ==========================================
+# CodeDeploy Agent Installation Module
+# ==========================================
+log "Starting CodeDeploy agent installation..."
+
+# Check if CodeDeploy agent is already installed
+if command -v codedeploy-agent >/dev/null 2>&1; then
+    log "⚠ CodeDeploy agent already installed, skipping installation"
+else
+    # Install Ruby runtime (required by CodeDeploy agent)
+    log "Installing Ruby runtime..."
+    if dnf install -y ruby wget; then
+        log "✓ Ruby runtime installed successfully"
+    else
+        log "✗ Error: Failed to install Ruby runtime"
+        exit 1
+    fi
+    
+    # Verify Ruby is available
+    if command -v ruby >/dev/null 2>&1; then
+        RUBY_VERSION=$(ruby --version)
+        log "✓ Ruby is available: $RUBY_VERSION"
+    else
+        log "✗ Error: Ruby command not found after installation"
+        exit 1
+    fi
+    
+    # Download CodeDeploy agent installer for the instance region
+    log "Downloading CodeDeploy agent installer for region $REGION..."
+    cd /tmp
+    if wget https://aws-codedeploy-${REGION}.s3.${REGION}.amazonaws.com/latest/install; then
+        log "✓ CodeDeploy agent installer downloaded successfully"
+    else
+        log "✗ Error: Failed to download CodeDeploy agent installer"
+        exit 1
+    fi
+    
+    # Make installer executable
+    chmod +x ./install
+    
+    # Install CodeDeploy agent
+    log "Installing CodeDeploy agent..."
+    if ./install auto; then
+        log "✓ CodeDeploy agent installed successfully"
+    else
+        log "✗ Error: Failed to install CodeDeploy agent"
+        exit 1
+    fi
+    
+    # Clean up installer
+    rm -f /tmp/install
+fi
+
+# Enable CodeDeploy agent service
+log "Enabling CodeDeploy agent service..."
+if systemctl enable codedeploy-agent; then
+    log "✓ CodeDeploy agent service enabled for automatic startup"
+else
+    log "⚠ Warning: Failed to enable CodeDeploy agent service"
+fi
+
+# Start CodeDeploy agent service
+log "Starting CodeDeploy agent service..."
+if systemctl start codedeploy-agent; then
+    log "✓ CodeDeploy agent service started successfully"
+else
+    log "⚠ Warning: Failed to start CodeDeploy agent service"
+    # Try to get more information
+    systemctl status codedeploy-agent
+fi
+
+# Wait for service to be ready
+log "Waiting for CodeDeploy agent to be ready..."
+sleep 3
+
+# Verify CodeDeploy agent service is active
+log "Verifying CodeDeploy agent service status..."
+if systemctl is-active --quiet codedeploy-agent; then
+    log "✓ CodeDeploy agent service is active and running"
+else
+    log "⚠ Warning: CodeDeploy agent service is not active"
+    systemctl status codedeploy-agent
+fi
+
+# Verify CodeDeploy agent service is running
+log "Checking CodeDeploy agent process..."
+if pgrep -f codedeploy-agent >/dev/null 2>&1; then
+    AGENT_PID=$(pgrep -f codedeploy-agent)
+    log "✓ CodeDeploy agent is running (PID: $AGENT_PID)"
+else
+    log "⚠ Warning: CodeDeploy agent process not found"
+fi
+
+log "✓ CodeDeploy agent installation module completed"
