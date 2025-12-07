@@ -37,7 +37,7 @@
   - Verify psql command is available
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 7.1, 7.2, 7.3_
 
-- [ ] 7. Checkpoint - Verify PostgreSQL installation
+- [x] 7. Checkpoint - Verify PostgreSQL installation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Implement NVM and Node.js installation
