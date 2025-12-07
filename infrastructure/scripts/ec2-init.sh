@@ -636,3 +636,85 @@ log "=========================================="
 
 # Create completion marker
 echo "EC2 initialization completed at $(date)" > /var/log/user-data-completed
+
+
+# ==========================================
+# PM2 Installation and Configuration Module
+# ==========================================
+log "Starting PM2 installation and configuration..."
+
+# Check if PM2 is already installed
+if sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && command -v pm2" >/dev/null 2>&1; then
+    CURRENT_PM2_VERSION=$(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 --version")
+    log "⚠ PM2 already installed: version $CURRENT_PM2_VERSION"
+    log "⚠ Skipping PM2 installation"
+else
+    # Install PM2 globally using npm
+    log "Installing PM2 globally..."
+    if sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && npm install -g pm2"; then
+        log "✓ PM2 installed successfully"
+    else
+        log "✗ Error: Failed to install PM2"
+        exit 1
+    fi
+fi
+
+# Verify pm2 command is available
+log "Verifying PM2 installation..."
+if sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && command -v pm2" >/dev/null 2>&1; then
+    PM2_VERSION=$(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 --version")
+    log "✓ PM2 is available: version $PM2_VERSION"
+else
+    log "✗ Error: pm2 command not found after installation"
+    exit 1
+fi
+
+# Install pm2-logrotate module
+log "Installing pm2-logrotate module..."
+if sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 install pm2-logrotate"; then
+    log "✓ pm2-logrotate module installed successfully"
+else
+    log "⚠ Warning: Failed to install pm2-logrotate module"
+fi
+
+# Configure log rotation settings
+log "Configuring PM2 log rotation..."
+sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 set pm2-logrotate:max_size 10M"
+sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 set pm2-logrotate:retain 7"
+sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 set pm2-logrotate:compress true"
+log "✓ PM2 log rotation configured: 10MB max size, 7 days retention, compression enabled"
+
+# Set up PM2 startup script for systemd
+log "Setting up PM2 startup script..."
+STARTUP_SCRIPT=$(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 startup systemd -u ec2-user --hp /home/ec2-user" | grep "sudo")
+
+if [ -n "$STARTUP_SCRIPT" ]; then
+    log "Executing PM2 startup command..."
+    eval "$STARTUP_SCRIPT"
+    log "✓ PM2 startup script configured"
+else
+    log "⚠ Warning: Could not generate PM2 startup command"
+fi
+
+# Save PM2 process list
+log "Saving PM2 process list..."
+sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 save"
+log "✓ PM2 process list saved"
+
+# Enable pm2-ec2-user service
+log "Enabling pm2-ec2-user service..."
+if systemctl enable pm2-ec2-user; then
+    log "✓ pm2-ec2-user service enabled for automatic startup"
+else
+    log "⚠ Warning: Failed to enable pm2-ec2-user service"
+fi
+
+# Verify pm2-ec2-user service is enabled
+log "Verifying pm2-ec2-user service status..."
+if systemctl is-enabled pm2-ec2-user >/dev/null 2>&1; then
+    log "✓ pm2-ec2-user service is enabled"
+else
+    log "⚠ Warning: pm2-ec2-user service is not enabled"
+fi
+
+log "✓ PM2 installation and configuration module completed"

@@ -305,6 +305,12 @@ export class Ec2Stack extends cdk.Stack {
         const userData = UserData.forLinux();
 
         // ============================================
+        // INSTANCE CREATION CONTROL
+        // ============================================
+        // Set to false to remove the instance, true to create/recreate it
+        const CREATE_INSTANCE = true;
+        
+        // ============================================
         // USERDATA SCRIPT VERSION CONTROL
         // ============================================
         // Change this version number ONLY when you want to replace the EC2 instance
@@ -366,11 +372,11 @@ export class Ec2Stack extends cdk.Stack {
         // ============================================
         // EC2 INSTANCE CREATION
         // ============================================
-        // COMMENT OUT THIS BLOCK to deploy stack changes without recreating the instance
-        // UNCOMMENT to create/recreate the instance with updated UserData
+        // Set CREATE_INSTANCE flag above to control instance creation
         // ============================================
         
-        this.instance = new Instance(this, identifyResource(resourcePrefix, 'ec2-instance-v2'), {
+        if (CREATE_INSTANCE) {
+            this.instance = new Instance(this, identifyResource(resourcePrefix, 'ec2-instance-v2'), {
             instanceName: identifyResource(resourcePrefix, 'ec2-instance'),
             instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
             machineImage: MachineImage.latestAmazonLinux2023({
@@ -402,11 +408,12 @@ export class Ec2Stack extends cdk.Stack {
         this.instance.addSecurityGroup(httpSecurityGroup);
         this.instance.addSecurityGroup(sshSecurityGroup);
 
-        // Add deployment target tag for CodeDeploy
-        Tags.of(this.instance).add(
-            identifyResource(resourcePrefix, 'deployment-target'),
-            'true'
-        );
+            // Add deployment target tag for CodeDeploy
+            Tags.of(this.instance).add(
+                identifyResource(resourcePrefix, 'deployment-target'),
+                'true'
+            );
+        }
         
         // ============================================
         // END EC2 INSTANCE CREATION
@@ -415,11 +422,12 @@ export class Ec2Stack extends cdk.Stack {
         // ============================================
         // ELASTIC IP AND ASSOCIATION
         // ============================================
-        // COMMENT OUT if instance creation is commented out above
+        // Controlled by CREATE_INSTANCE flag
         // ============================================
         
-        // Elastic IP
-        this.elasticIp = new CfnEIP(this, identifyResource(resourcePrefix, 'elastic-ip'), {
+        if (CREATE_INSTANCE) {
+            // Elastic IP
+            this.elasticIp = new CfnEIP(this, identifyResource(resourcePrefix, 'elastic-ip'), {
             domain: 'vpc',
             tags: [
                 {
@@ -429,46 +437,49 @@ export class Ec2Stack extends cdk.Stack {
             ],
         });
 
-        // Associate Elastic IP with EC2 instance
-        new CfnEIPAssociation(this, identifyResource(resourcePrefix, 'eip-association'), {
-            eip: this.elasticIp.ref,
-            instanceId: this.instance.instanceId,
-        });
+            // Associate Elastic IP with EC2 instance
+            new CfnEIPAssociation(this, identifyResource(resourcePrefix, 'eip-association'), {
+                eip: this.elasticIp.ref,
+                instanceId: this.instance.instanceId,
+            });
+            
+            // Route 53 A Record
+            const hostedZone = HostedZone.fromLookup(
+                this,
+                identifyResource(resourcePrefix, 'hosted-zone'),
+                {
+                    domainName: props.hostedZoneName,
+                },
+            );
+
+            new ARecord(this, identifyResource(resourcePrefix, 'a-record'), {
+                zone: hostedZone,
+                recordName: props.domainName,
+                target: RecordTarget.fromIpAddresses(this.elasticIp.ref),
+                ttl: Duration.seconds(300),
+            });
+        }
         
         // ============================================
         // END ELASTIC IP AND ASSOCIATION
         // ============================================
 
-        // Route 53 A Record
-        const hostedZone = HostedZone.fromLookup(
-            this,
-            identifyResource(resourcePrefix, 'hosted-zone'),
-            {
-                domainName: props.hostedZoneName,
-            },
-        );
-
-        new ARecord(this, identifyResource(resourcePrefix, 'a-record'), {
-            zone: hostedZone,
-            recordName: props.domainName,
-            target: RecordTarget.fromIpAddresses(this.elasticIp.ref),
-            ttl: Duration.seconds(300),
-        });
-
         // Outputs
-        new cdk.CfnOutput(this, 'InstanceId', {
-            value: this.instance.instanceId,
-            description: 'EC2 Instance ID',
-        });
+        if (CREATE_INSTANCE) {
+            new cdk.CfnOutput(this, 'InstanceId', {
+                value: this.instance.instanceId,
+                description: 'EC2 Instance ID',
+            });
 
-        new cdk.CfnOutput(this, 'ElasticIP', {
-            value: this.elasticIp.ref,
-            description: 'Elastic IP address',
-        });
+            new cdk.CfnOutput(this, 'ElasticIP', {
+                value: this.elasticIp.ref,
+                description: 'Elastic IP address',
+            });
 
-        new cdk.CfnOutput(this, 'DomainName', {
-            value: props.domainName,
-            description: 'Domain name',
-        });
+            new cdk.CfnOutput(this, 'DomainName', {
+                value: props.domainName,
+                description: 'Domain name',
+            });
+        }
     }
 }
