@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 echo "[$(date)] ApplicationStart hook started"
 
@@ -12,13 +11,20 @@ APP_DIR="/opt/img-manager/current"
 SHARED_DIR="/opt/img-manager/shared"
 
 echo "[$(date)] Working directory: $APP_DIR"
-cd "$APP_DIR"
+cd "$APP_DIR" || {
+    echo "[$(date)] ✗ Error: Failed to change to directory $APP_DIR"
+    exit 1
+}
 
 # Verify .env file exists
 if [ ! -f "$SHARED_DIR/.env" ]; then
     echo "[$(date)] ✗ Error: Environment file not found at $SHARED_DIR/.env"
     exit 1
 fi
+
+# Delete old PM2 processes if any
+echo "[$(date)] Cleaning up old PM2 processes..."
+pm2 delete all 2>/dev/null || echo "[$(date)] No existing PM2 processes to delete"
 
 # Start application with PM2
 echo "[$(date)] Starting application with PM2..."
@@ -35,3 +41,4 @@ fi
 pm2 list
 
 echo "[$(date)] ✓ ApplicationStart hook completed successfully"
+exit 0
