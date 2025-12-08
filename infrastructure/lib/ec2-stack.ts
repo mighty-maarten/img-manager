@@ -143,7 +143,7 @@ export class Ec2Stack extends cdk.Stack {
             ec2Role.addToPolicy(
                 new PolicyStatement({
                     effect: Effect.ALLOW,
-                    actions: ['s3:GetObject', 's3:ListBucket'],
+                    actions: ['s3:GetObject', 's3:GetObjectVersion', 's3:ListBucket'],
                     resources: [
                         `arn:aws:s3:::${resourcePrefix}-deployment-artifacts`,
                         `arn:aws:s3:::${resourcePrefix}-deployment-artifacts/*`,
@@ -157,7 +157,7 @@ export class Ec2Stack extends cdk.Stack {
         ec2Role.addToPolicy(
             new PolicyStatement({
                 effect: Effect.ALLOW,
-                actions: ['s3:GetObject', 's3:ListBucket'],
+                actions: ['s3:GetObject', 's3:GetObjectVersion', 's3:ListBucket'],
                 resources: [
                     // Deployment artifacts bucket (created by DeploymentStack)
                     `arn:aws:s3:::${resourcePrefix}-deployment-artifacts`,

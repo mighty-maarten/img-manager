@@ -13,6 +13,11 @@ SHARED_DIR="/opt/img-manager/shared"
 
 echo "[$(date)] Working directory: $APP_DIR"
 
+# Set correct permissions first (CodeDeploy extracts as root)
+echo "[$(date)] Setting file permissions..."
+sudo chown -R ec2-user:ec2-user "$APP_DIR"
+sudo chmod -R 755 "$APP_DIR"
+
 # Create symlink to shared .env file for API
 echo "[$(date)] Creating symlink to shared .env file..."
 if [ -f "$SHARED_DIR/.env" ]; then
@@ -43,12 +48,7 @@ else
     echo "[$(date)] ⚠ Warning: Client .env.production not found"
 fi
 
-# Set correct permissions
-echo "[$(date)] Setting file permissions..."
-chown -R ec2-user:ec2-user "$APP_DIR"
-chmod -R 755 "$APP_DIR"
-
 # Make scripts executable
-chmod +x "$APP_DIR/deploy"/*.sh
+sudo chmod +x "$APP_DIR/deploy"/*.sh
 
 echo "[$(date)] ✓ AfterInstall hook completed successfully"
