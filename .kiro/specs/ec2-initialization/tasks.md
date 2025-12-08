@@ -74,7 +74,7 @@
   - Verify codedeploy-agent service is running
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 7.4_
 
-- [ ] 13. Checkpoint - Verify CodeDeploy agent installation
+- [x] 13. Checkpoint - Verify CodeDeploy agent installation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Implement application directory structure
