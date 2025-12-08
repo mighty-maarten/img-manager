@@ -11,6 +11,7 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
+      - npm ci
       - cd packages/client
       - npm ci
       - cd ../..
