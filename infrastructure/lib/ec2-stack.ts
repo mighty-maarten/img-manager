@@ -314,7 +314,7 @@ export class Ec2Stack extends cdk.Stack {
         // USERDATA SCRIPT VERSION CONTROL
         // ============================================
         // Change this version number ONLY when you want to replace the EC2 instance
-        const USERDATA_VERSION = 'v2.0.0';
+        const USERDATA_VERSION = 'v2.1.0';
         
         // Minimal UserData that downloads and executes the main initialization script from S3
         userData.addCommands(
@@ -376,7 +376,7 @@ export class Ec2Stack extends cdk.Stack {
         // ============================================
         
         if (CREATE_INSTANCE) {
-            this.instance = new Instance(this, identifyResource(resourcePrefix, 'ec2-instance-v2'), {
+            this.instance = new Instance(this, identifyResource(resourcePrefix, 'ec2-instance-v3'), {
             instanceName: identifyResource(resourcePrefix, 'ec2-instance'),
             instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO),
             machineImage: MachineImage.latestAmazonLinux2023({

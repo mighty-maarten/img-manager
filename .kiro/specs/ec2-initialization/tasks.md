@@ -77,7 +77,7 @@
 - [x] 13. Checkpoint - Verify CodeDeploy agent installation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement application directory structure
+- [x] 14. Implement application directory structure
   - Create `/opt/img-manager` directory structure
   - Create `/var/log/img-manager` for application logs
   - Set ownership to ec2-user:ec2-user
@@ -85,7 +85,7 @@
   - Verify directories exist with correct permissions
   - _Requirements: 7.3_
 
-- [ ] 15. Implement environment configuration file generation
+- [x] 15. Implement environment configuration file generation
   - Create `.env` file at `/opt/img-manager/shared/.env`
   - Populate with database credentials from Secrets Manager
   - Include all required environment variables (NODE_ENV, PORT, DB_*, AWS_REGION, etc.)
@@ -93,14 +93,14 @@
   - Verify .env file exists with correct permissions
   - _Requirements: 7.3_
 
-- [ ] 16. Implement deployment metadata file
+- [x] 16. Implement deployment metadata file
   - Create `deployment_info.json` at `/opt/img-manager/shared/`
   - Include setup timestamp, domain name, versions, and system info
   - Retrieve instance metadata (instance ID, availability zone)
   - Verify metadata file exists and contains valid JSON
   - _Requirements: 6.4_
 
-- [ ] 17. Implement comprehensive verification module
+- [x] 17. Implement comprehensive verification module
   - Check command availability (node, npm, pm2, nginx, psql, certbot, aws)
   - Verify service status (postgresql, nginx, codedeploy-agent, crond)
   - Test database connectivity with `psql -c "SELECT 1;"`
@@ -108,25 +108,113 @@
   - Log verification results with ✓/✗ markers
   - _Requirements: 3.4, 4.3, 5.6, 6.1_
 
-- [ ] 18. Implement idempotency checks
+- [x] 18. Implement idempotency checks
   - Add package existence checks before installation
   - Skip installation if package already exists
   - Log skip messages for already-installed packages
   - Ensure script can be safely re-run
   - _Requirements: 6.2, 6.5_
 
-- [ ] 19. Implement error handling
+- [x] 19. Implement error handling
   - Add error logging for each installation step
   - Exit with non-zero status code on critical failures
   - Continue with warnings for non-critical failures
   - Log specific error messages for troubleshooting
   - _Requirements: 1.5, 2.6, 3.5, 4.4, 5.7, 6.3_
 
-- [ ] 20. Add completion marker
+- [x] 20. Add completion marker
   - Create `/var/log/user-data-completed` file on successful completion
   - Include completion timestamp and summary
   - Log all installed component versions
   - _Requirements: 6.4_
 
-- [ ] 21. Final checkpoint - Verify complete EC2 initialization
+- [x] 21. Final checkpoint - Verify complete EC2 initialization
   - Ensure all tests pass, ask the user if questions arise.
+
+## CI/CD Pipeline Deployment
+
+- [x] 22. Create GitHub Personal Access Token
+  - Generate GitHub token with `repo` scope
+  - Store token in AWS Secrets Manager at `/cicd/github_token`
+  - Verify token is accessible via AWS CLI
+  - _Requirements: Pipeline authentication_
+
+- [x] 23. Deploy Deployment Stack
+  - Build CDK infrastructure code with `npm run build`
+  - Deploy deployment stack with `npx cdk deploy img-manager-prod-deployment-stack`
+  - Verify CloudFormation stack creation completes successfully
+  - Review stack outputs (pipeline name, CodeDeploy app, artifacts bucket)
+  - _Requirements: CI/CD infrastructure_
+
+- [ ] 24. Verify CodePipeline creation
+  - Check pipeline exists in AWS Console
+  - Verify pipeline has 4 stages: Source, Build, Approval, Deploy
+  - Confirm GitHub webhook is configured
+  - Verify artifacts bucket is created with lifecycle policy
+  - _Requirements: Pipeline infrastructure_
+
+- [ ] 25. Verify CodeBuild project
+  - Check CodeBuild project exists with correct name
+  - Verify build environment (Amazon Linux 2, Node.js 22)
+  - Confirm buildspec.yml is configured as build specification
+  - Check IAM role has necessary permissions
+  - _Requirements: Build infrastructure_
+
+- [ ] 26. Verify CodeDeploy configuration
+  - Check CodeDeploy application exists
+  - Verify deployment group targets EC2 instances with correct tag
+  - Confirm deployment configuration is ALL_AT_ONCE
+  - Verify auto-rollback is enabled
+  - Check EC2 instance appears in deployment group targets
+  - _Requirements: Deployment infrastructure_
+
+- [ ] 27. Verify SNS notifications
+  - Check SNS topic is created
+  - Confirm email subscription is pending/confirmed
+  - Verify pipeline events are configured to publish to topic
+  - _Requirements: Notification infrastructure_
+
+- [ ] 28. Test manual pipeline execution
+  - Trigger pipeline manually from AWS Console
+  - Monitor Source stage: verify code is pulled from GitHub
+  - Monitor Build stage: check CloudWatch Logs for build output
+  - Monitor Approval stage: verify email notification is received
+  - Approve deployment manually
+  - Monitor Deploy stage: verify deployment to EC2 succeeds
+  - _Requirements: End-to-end pipeline validation_
+
+- [ ] 29. Verify deployment on EC2 instance
+  - SSH into EC2 instance
+  - Check application files exist at `/opt/img-manager/current/`
+  - Verify PM2 is running the application: `pm2 list`
+  - Check application logs: `tail -f /var/log/img-manager/api-out.log`
+  - Verify application is accessible via domain
+  - _Requirements: Deployment validation_
+
+- [ ] 30. Test automatic pipeline trigger
+  - Make a small change to repository (e.g., update README)
+  - Commit and push to main branch
+  - Verify pipeline automatically triggers
+  - Monitor pipeline execution through all stages
+  - Confirm deployment completes successfully
+  - _Requirements: Webhook validation_
+
+- [ ] 31. Verify deployment artifacts cleanup
+  - Check artifacts bucket contains deployment artifacts
+  - Verify lifecycle policy is configured (30 days expiration)
+  - Confirm old artifacts are marked for deletion
+  - _Requirements: Cost optimization_
+
+- [ ] 32. Document deployment process
+  - Review DEPLOYMENT.md for accuracy
+  - Review infrastructure/DEPLOYMENT_STACK.md for completeness
+  - Update any missing information or corrections
+  - Document any environment-specific configurations
+  - _Requirements: Documentation_
+
+- [ ] 33. Final checkpoint - Verify complete CI/CD pipeline
+  - Ensure all pipeline components are working
+  - Verify automatic deployments trigger on code push
+  - Confirm rollback works on failed deployments
+  - Validate monitoring and notifications
+  - Ask the user if questions arise.

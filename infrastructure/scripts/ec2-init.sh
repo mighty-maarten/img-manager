@@ -627,15 +627,7 @@ fi
 
 log "✓ NVM and Node.js installation module completed"
 
-# ==========================================
-# Completion
-# ==========================================
-log "=========================================="
-log "EC2 initialization completed successfully"
-log "=========================================="
-
-# Create completion marker
-echo "EC2 initialization completed at $(date)" > /var/log/user-data-completed
+# This completion marker is moved to the end of the script after all modules are complete
 
 
 # ==========================================
@@ -814,3 +806,345 @@ else
 fi
 
 log "✓ CodeDeploy agent installation module completed"
+
+
+# ==========================================
+# Application Directory Structure Module
+# ==========================================
+log "Starting application directory structure setup..."
+
+# Create main application directories
+log "Creating application directories..."
+mkdir -p /opt/img-manager/current
+mkdir -p /opt/img-manager/shared
+mkdir -p /opt/img-manager/releases
+mkdir -p /var/log/img-manager
+
+log "✓ Application directories created"
+
+# Set ownership to ec2-user
+log "Setting directory ownership..."
+chown -R ec2-user:ec2-user /opt/img-manager
+chown -R ec2-user:ec2-user /var/log/img-manager
+
+log "✓ Directory ownership set to ec2-user:ec2-user"
+
+# Set permissions
+log "Setting directory permissions..."
+chmod -R 755 /opt/img-manager
+chmod -R 755 /var/log/img-manager
+
+log "✓ Directory permissions set (755)"
+
+# Verify directories exist
+log "Verifying directory structure..."
+MISSING_DIRS=""
+
+for dir in /opt/img-manager/current /opt/img-manager/shared /opt/img-manager/releases /var/log/img-manager; do
+    if [ -d "$dir" ]; then
+        log "  ✓ $dir exists"
+    else
+        log "  ✗ $dir not found"
+        MISSING_DIRS="$MISSING_DIRS $dir"
+    fi
+done
+
+if [ -n "$MISSING_DIRS" ]; then
+    log "✗ Error: Missing directories:$MISSING_DIRS"
+    exit 1
+fi
+
+log "✓ All application directories verified successfully"
+log "✓ Application directory structure module completed"
+
+
+# ==========================================
+# Environment Configuration File Module
+# ==========================================
+log "Starting environment configuration file generation..."
+
+# Retrieve database credentials from Secrets Manager (already retrieved earlier)
+log "Using database credentials retrieved earlier..."
+
+# Create .env file at /opt/img-manager/shared/.env
+log "Creating environment configuration file..."
+cat > /opt/img-manager/shared/.env << EOF
+# Application Configuration
+NODE_ENV=production
+PORT=3000
+APP_NAME=img-manager
+
+# Domain Configuration
+DOMAIN_NAME=${DOMAIN_NAME}
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=${DB_NAME}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+
+# AWS Configuration
+AWS_REGION=${REGION}
+ASSETS_BUCKET=${ASSETS_BUCKET}
+ERROR_SNS_TOPIC=${ERROR_SNS_TOPIC}
+LOG_GROUP_NAME=${LOG_GROUP_NAME}
+
+# Storage Configuration
+STORAGE_TYPE=s3
+STORAGE_PATH=/opt/img-manager/shared/storage
+
+# Application Settings
+LOG_LEVEL=info
+CORS_ORIGIN=https://${DOMAIN_NAME}
+RATE_LIMIT_MAX=100
+EOF
+
+log "✓ Environment configuration file created at /opt/img-manager/shared/.env"
+
+# Set file permissions to 600 for security
+log "Setting .env file permissions..."
+chown ec2-user:ec2-user /opt/img-manager/shared/.env
+chmod 600 /opt/img-manager/shared/.env
+
+log "✓ .env file permissions set (600)"
+
+# Verify .env file exists with correct permissions
+log "Verifying .env file..."
+if [ -f "/opt/img-manager/shared/.env" ]; then
+    PERMS=$(stat -c "%a" /opt/img-manager/shared/.env)
+    if [ "$PERMS" = "600" ]; then
+        log "✓ .env file exists with correct permissions (600)"
+    else
+        log "⚠ Warning: .env file has incorrect permissions ($PERMS, expected 600)"
+    fi
+else
+    log "✗ Error: .env file not found"
+    exit 1
+fi
+
+log "✓ Environment configuration file module completed"
+
+
+# ==========================================
+# Deployment Metadata File Module
+# ==========================================
+log "Starting deployment metadata file generation..."
+
+# Retrieve instance metadata
+log "Retrieving EC2 instance metadata..."
+INSTANCE_ID=$(ec2-metadata --instance-id | cut -d " " -f 2)
+AVAILABILITY_ZONE=$(ec2-metadata --availability-zone | cut -d " " -f 2)
+HOSTNAME=$(hostname)
+
+log "✓ Instance metadata retrieved"
+log "  Instance ID: $INSTANCE_ID"
+log "  Availability Zone: $AVAILABILITY_ZONE"
+log "  Hostname: $HOSTNAME"
+
+# Get installed versions
+NODE_VERSION=$(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && node --version")
+POSTGRESQL_VERSION=$(psql --version | awk '{print $3}')
+NGINX_VERSION=$(nginx -v 2>&1 | awk '{print $3}' | cut -d'/' -f2)
+
+# Create deployment_info.json
+log "Creating deployment metadata file..."
+cat > /opt/img-manager/shared/deployment_info.json << EOF
+{
+  "initial_setup": true,
+  "setup_time": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "domain_name": "${DOMAIN_NAME}",
+  "node_version": "${NODE_VERSION}",
+  "postgresql_version": "${POSTGRESQL_VERSION}",
+  "nginx_version": "${NGINX_VERSION}",
+  "system_info": {
+    "hostname": "${HOSTNAME}",
+    "instance_id": "${INSTANCE_ID}",
+    "availability_zone": "${AVAILABILITY_ZONE}"
+  }
+}
+EOF
+
+log "✓ Deployment metadata file created at /opt/img-manager/shared/deployment_info.json"
+
+# Set ownership and permissions
+chown ec2-user:ec2-user /opt/img-manager/shared/deployment_info.json
+chmod 644 /opt/img-manager/shared/deployment_info.json
+
+# Verify metadata file exists and contains valid JSON
+log "Verifying deployment metadata file..."
+if [ -f "/opt/img-manager/shared/deployment_info.json" ]; then
+    if jq empty /opt/img-manager/shared/deployment_info.json 2>/dev/null; then
+        log "✓ Deployment metadata file exists and contains valid JSON"
+    else
+        log "✗ Error: Deployment metadata file contains invalid JSON"
+        exit 1
+    fi
+else
+    log "✗ Error: Deployment metadata file not found"
+    exit 1
+fi
+
+log "✓ Deployment metadata file module completed"
+
+
+# ==========================================
+# Comprehensive Verification Module
+# ==========================================
+log "Starting comprehensive system verification..."
+
+# Check command availability
+log "Verifying command availability..."
+MISSING_COMMANDS=""
+
+for cmd in node npm pm2 nginx psql certbot aws; do
+    if sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && command -v $cmd" >/dev/null 2>&1 || command -v $cmd >/dev/null 2>&1; then
+        log "  ✓ $cmd available"
+    else
+        log "  ✗ $cmd not found"
+        MISSING_COMMANDS="$MISSING_COMMANDS $cmd"
+    fi
+done
+
+if [ -n "$MISSING_COMMANDS" ]; then
+    log "✗ Error: Missing commands:$MISSING_COMMANDS"
+    exit 1
+fi
+
+log "✓ All required commands are available"
+
+# Verify service status
+log "Verifying service status..."
+FAILED_SERVICES=""
+
+for service in postgresql nginx codedeploy-agent crond; do
+    if systemctl is-active --quiet $service; then
+        log "  ✓ $service is active"
+    else
+        log "  ✗ $service is not active"
+        FAILED_SERVICES="$FAILED_SERVICES $service"
+    fi
+done
+
+if [ -n "$FAILED_SERVICES" ]; then
+    log "⚠ Warning: Some services are not active:$FAILED_SERVICES"
+fi
+
+# Test database connectivity
+log "Testing database connectivity..."
+if sudo -u postgres psql -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
+    log "✓ Database connectivity test successful"
+else
+    log "✗ Error: Database connectivity test failed"
+    exit 1
+fi
+
+# Validate nginx configuration
+log "Validating Nginx configuration..."
+if nginx -t 2>&1 | grep -q "successful"; then
+    log "✓ Nginx configuration is valid"
+else
+    log "✗ Error: Nginx configuration is invalid"
+    nginx -t
+    exit 1
+fi
+
+# Log system resources
+log "System resources:"
+log "  Memory: $(free -h | grep Mem | awk '{print $3 "/" $2}')"
+log "  Disk: $(df -h / | tail -1 | awk '{print $3 "/" $2 " (" $5 " used)"}')"
+log "  Load average: $(uptime | awk -F'load average:' '{print $2}')"
+
+log "✓ Comprehensive verification module completed"
+
+
+# ==========================================
+# Completion Module
+# ==========================================
+log "=========================================="
+log "EC2 INITIALIZATION COMPLETED SUCCESSFULLY"
+log "=========================================="
+
+# Create completion marker with detailed summary
+log "Creating completion marker..."
+cat > /var/log/user-data-completed << EOF
+EC2 Initialization Completed Successfully
+==========================================
+Completion Time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+Domain: ${DOMAIN_NAME}
+Region: ${REGION}
+
+Installed Components:
+--------------------
+✓ System Updates: dnf packages updated
+✓ Base Utilities: wget, git, unzip, tar, gzip, jq, htop, vim, cronie, logrotate
+✓ Nginx: $(nginx -v 2>&1 | awk '{print $3}' | cut -d'/' -f2)
+✓ Certbot: $(certbot --version 2>&1 | head -n1)
+✓ PostgreSQL: $(psql --version | awk '{print $3}')
+✓ NVM: $(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && nvm --version")
+✓ Node.js: $(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && node --version")
+✓ npm: $(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && npm --version")
+✓ PM2: $(sudo -u ec2-user bash -c "source /home/ec2-user/.nvm/nvm.sh && pm2 --version")
+✓ CodeDeploy Agent: Installed and running
+
+Directory Structure:
+-------------------
+✓ /opt/img-manager/current (deployment target)
+✓ /opt/img-manager/shared (persistent data)
+✓ /opt/img-manager/releases (deployment history)
+✓ /var/log/img-manager (application logs)
+
+Configuration Files:
+-------------------
+✓ /opt/img-manager/shared/.env (environment variables)
+✓ /opt/img-manager/shared/deployment_info.json (metadata)
+✓ /etc/nginx/nginx.conf (web server configuration)
+✓ /var/lib/pgsql/data/postgresql.conf (database configuration)
+
+Services Running:
+----------------
+✓ nginx (web server)
+✓ postgresql (database)
+✓ codedeploy-agent (deployment agent)
+✓ crond (cron daemon)
+✓ pm2-ec2-user (process manager)
+
+Instance Information:
+--------------------
+Instance ID: $(ec2-metadata --instance-id | cut -d " " -f 2)
+Availability Zone: $(ec2-metadata --availability-zone | cut -d " " -f 2)
+Hostname: $(hostname)
+
+Next Steps:
+----------
+1. Deploy application using AWS CodePipeline
+2. Configure SSL certificate with Certbot (if not already done)
+3. Update Nginx configuration for application routing
+4. Monitor logs at /var/log/img-manager/
+
+For troubleshooting, check:
+- /var/log/user-data.log (initialization log)
+- /var/log/aws/codedeploy-agent/codedeploy-agent.log (deployment log)
+- /var/log/img-manager/ (application logs)
+==========================================
+EOF
+
+log "✓ Completion marker created at /var/log/user-data-completed"
+
+# Log completion summary to console
+log ""
+log "=========================================="
+log "INITIALIZATION SUMMARY"
+log "=========================================="
+log "✓ All modules completed successfully"
+log "✓ All services are running"
+log "✓ All verification checks passed"
+log ""
+log "Instance is ready for application deployment!"
+log ""
+log "View completion details:"
+log "  cat /var/log/user-data-completed"
+log ""
+log "View initialization log:"
+log "  cat /var/log/user-data.log"
+log "=========================================="

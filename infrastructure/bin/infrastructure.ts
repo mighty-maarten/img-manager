@@ -9,6 +9,7 @@ import { RdsStack } from '../lib/rds-stack';
 import { InstanceClass, InstanceSize, InstanceType, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { SnsStack } from '../lib/sns-stack';
 import { Ec2Stack } from '../lib/ec2-stack';
+import { DeploymentStack } from '../lib/deployment-stack';
 
 /////////////////////////
 ///  ** PARAMETERS ** ///
@@ -100,6 +101,7 @@ const ec2Stack = new Ec2Stack(app, identifyResource(resourcePrefix, 'ec2-stack')
     resourcePrefix: resourcePrefix,
     vpc: vpcStack.vpc,
     assetsBucket: sharedStack.assetsBucket,
+    deploymentArtifactsBucket: undefined, // Will be set after deployment stack is created
     cloudwatchLogs: sharedStack.cloudwatchLogs,
     sshAccessDefinitions: [
         new AccessDefinition('141.135.70.31/32', 'MT Home Office'),
@@ -137,5 +139,29 @@ const ec2Stack = new Ec2Stack(app, identifyResource(resourcePrefix, 'ec2-stack')
         region: region,
     },
 });
+
+// DEPLOYMENT STACK (CodePipeline + CodeDeploy) //
+const deploymentStack = new DeploymentStack(
+    app,
+    identifyResource(resourcePrefix, 'deployment-stack'),
+    {
+        resourcePrefix: resourcePrefix,
+        githubOwner: repoOwner,
+        githubRepo: repo,
+        githubBranch: repoBranch,
+        githubTokenSecretId: githubTokenSecretId,
+        deploymentTargetTag: identifyResource(resourcePrefix, 'deployment-target'),
+        notificationTopicArn: snsStack.snsTopicArn,
+        requireManualApproval: deployApprovalNeeded,
+        env: {
+            account: accountId,
+            region: region,
+        },
+    },
+);
+
+// Ensure deployment stack is created after EC2 stack
+deploymentStack.addDependency(ec2Stack);
+deploymentStack.addDependency(snsStack);
 
 app.synth();

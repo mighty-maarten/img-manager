@@ -1,0 +1,19 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/img-manager/current
+file_exists_behavior: OVERWRITE
+hooks:
+  AfterInstall:
+    - location: deploy/after-install.sh
+      timeout: 300
+      runas: ec2-user
+  ApplicationStart:
+    - location: deploy/start.sh
+      timeout: 300
+      runas: ec2-user
+  ApplicationStop:
+    - location: deploy/stop.sh
+      timeout: 60
+      runas: ec2-user
