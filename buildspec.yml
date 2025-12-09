@@ -11,7 +11,8 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
-      - cd packages/api && pwd && npm ci && pwd && ls -la node_modules | head -20 && cd ../..
+      - echo "NODE_ENV=$NODE_ENV"
+      - cd packages/api && npm ci && ls -la node_modules | grep -i nestjs && cd ../..
       - cd packages/client && npm ci && cd ../..
       - echo "Ended installing NPM dependencies on $(date)"
   build:
