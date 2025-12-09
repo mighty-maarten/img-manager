@@ -308,13 +308,13 @@ export class Ec2Stack extends cdk.Stack {
         // INSTANCE CREATION CONTROL
         // ============================================
         // Set to false to remove the instance, true to create/recreate it
-        const CREATE_INSTANCE = true;
+        const CREATE_INSTANCE = false;
         
         // ============================================
         // USERDATA SCRIPT VERSION CONTROL
         // ============================================
         // Change this version number ONLY when you want to replace the EC2 instance
-        const USERDATA_VERSION = 'v3.0.0';
+        const USERDATA_VERSION = 'v3.1.0';
         
         // Minimal UserData that downloads and executes the main initialization script from S3
         userData.addCommands(
