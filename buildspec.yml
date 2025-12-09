@@ -11,14 +11,13 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
-      - cd packages/api && npm install && cd ../..
-      - cd packages/client && npm install && cd ../..
+      - npm ci
       - echo "Ended installing NPM dependencies on $(date)"
   build:
     commands:
       - echo "Build started on $(date)"
-      - cd packages/client && npm run build && cd ../..
-      - cd packages/api && node node_modules/@nestjs/cli/bin/nest.js build && cd ../..
+      - npm run build --workspace=packages/client
+      - npm run build --workspace=packages/api
       - echo "Build completed on $(date)"
       - echo "Build artifacts prepared"
   post_build:
@@ -29,10 +28,9 @@ phases:
 artifacts:
   files:
     - appspec.yml
-    - packages/api/node_modules/**/*
+    - node_modules/**/*
     - packages/api/dist/**/*
     - packages/api/package.json
-    - packages/api/package-lock.json
     - packages/api/database/**/*
     - packages/client/dist/**/*
     - deploy/**/*

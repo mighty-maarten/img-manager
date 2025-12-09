@@ -18,12 +18,12 @@ echo "[$(date)] Setting file permissions..."
 sudo chown -R ec2-user:ec2-user "$APP_DIR"
 sudo chmod -R 755 "$APP_DIR"
 
-# Verify node_modules exist
+# Verify node_modules exist (workspace setup - dependencies in root)
 echo "[$(date)] Verifying dependencies..."
-if [ -d "$APP_DIR/packages/api/node_modules" ]; then
-    echo "[$(date)] ✓ API dependencies found"
+if [ -d "$APP_DIR/node_modules" ]; then
+    echo "[$(date)] ✓ Dependencies found in root node_modules (workspace setup)"
 else
-    echo "[$(date)] ✗ ERROR: API node_modules not found!"
+    echo "[$(date)] ✗ ERROR: node_modules not found!"
     exit 1
 fi
 
