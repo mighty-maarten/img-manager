@@ -37,12 +37,14 @@ else
     echo "[$(date)] ⚠ Warning: Shared .env file not found at $SHARED_DIR/.env"
 fi
 
-# Rebuild native dependencies for the target platform
-echo "[$(date)] Rebuilding native dependencies for ARM64..."
+# Reinstall native dependencies for the target platform
+echo "[$(date)] Reinstalling native dependencies for ARM64..."
 cd "$APP_DIR/packages/api"
-npm rebuild sharp --verbose || echo "[$(date)] ⚠ Warning: Failed to rebuild sharp"
+# Remove sharp completely and reinstall for ARM64
+rm -rf node_modules/sharp
+npm install --no-save --force sharp || echo "[$(date)] ⚠ Warning: Failed to reinstall sharp"
 cd "$APP_DIR"
-echo "[$(date)] ✓ Native dependencies rebuilt"
+echo "[$(date)] ✓ Native dependencies reinstalled"
 
 # Replace client environment variables
 echo "[$(date)] Replacing client env variables..."
