@@ -14,6 +14,9 @@ phases:
       - cd packages/api && npm ci && cd ../..
       - cd packages/client && npm ci && cd ../..
       - echo "Ended installing NPM dependencies on $(date)"
+      - echo "Checking if @nestjs/cli was installed..."
+      - ls -la packages/api/node_modules/@nestjs/ | head -20
+      - test -d packages/api/node_modules/@nestjs/cli && echo "@nestjs/cli EXISTS" || echo "@nestjs/cli MISSING"
   build:
     commands:
       - echo "Build started on $(date)"
