@@ -47,31 +47,9 @@ import { join } from 'path';
             },
         }),
         TypeOrmModule.forFeature([SiteSettingsEntity]),
-        ServeStaticModule.forRootAsync({
-            imports: [AppConfigModule],
-            inject: [AppConfigService],
-            useFactory: async (configService: AppConfigService) => {
-                const assetsPath = join(
-                    configService.localStoragePath,
-                    configService.assetsBucketName,
-                );
-                return [
-                    // Serve Vue client static files (SPA)
-                    {
-                        rootPath: join(__dirname, '..', '..', 'client', 'dist'),
-                        exclude: ['/api/(.*)', '/status'],
-                        serveRoot: '/',
-                    },
-                    {
-                        rootPath: join(__dirname, '..', '..', 'sample'),
-                        serveRoot: '/sample',
-                    },
-                    {
-                        rootPath: assetsPath,
-                        serveRoot: '/assets/',
-                    },
-                ];
-            },
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '../../..', 'client/dist'),
+            exclude: ['/api*', '/status'],
         }),
         // Routes
         RouterModule.register(routes),
