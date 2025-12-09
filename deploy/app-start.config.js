@@ -11,6 +11,7 @@ module.exports = {
             max_memory_restart: '500M',
             env: {
                 NODE_ENV: 'production',
+                NODE_PATH: '/opt/img-manager/current/node_modules',
             },
             env_file: '/opt/img-manager/shared/.env',
             out_file: '/var/log/img-manager/api-out.log',
