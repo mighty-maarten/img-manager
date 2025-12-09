@@ -18,7 +18,7 @@ phases:
     commands:
       - echo "Build started on $(date)"
       - cd packages/client && npm run build && cd ../..
-      - cd packages/api && npm run build && cd ../..
+      - cd packages/api && npx nest build && cd ../..
       - echo "Build completed on $(date)"
       - echo "Build artifacts prepared"
   post_build:
