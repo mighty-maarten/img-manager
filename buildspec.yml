@@ -11,15 +11,17 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
-      - cd packages/client && npm ci && cd ../..
-      - cd packages/api && npm ci && cd ../..
+      - npm ci
       - echo "Ended installing NPM dependencies on $(date)"
   build:
     commands:
       - echo "Build started on $(date)"
-      - cd packages/client && npm run build && cd ../..
-      - cd packages/api && npm run build && cd ../..
+      - npm run build --workspace=packages/client
+      - npm run build --workspace=packages/api
       - echo "Build completed on $(date)"
+      - echo "Copying node_modules to package directories for deployment..."
+      - cp -r node_modules packages/api/node_modules_root
+      - echo "Build artifacts prepared"
   post_build:
     commands:
       - echo "Post build started on $(date)"
@@ -29,6 +31,7 @@ artifacts:
   files:
     - appspec.yml
     - packages/api/node_modules/**/*
+    - packages/api/node_modules_root/**/*
     - packages/api/dist/**/*
     - packages/api/package.json
     - packages/api/package-lock.json

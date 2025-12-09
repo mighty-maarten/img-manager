@@ -18,6 +18,16 @@ echo "[$(date)] Setting file permissions..."
 sudo chown -R ec2-user:ec2-user "$APP_DIR"
 sudo chmod -R 755 "$APP_DIR"
 
+# Merge root node_modules into api node_modules
+echo "[$(date)] Merging workspace dependencies..."
+if [ -d "$APP_DIR/packages/api/node_modules_root" ]; then
+    cp -rn "$APP_DIR/packages/api/node_modules_root/"* "$APP_DIR/packages/api/node_modules/" 2>/dev/null || true
+    rm -rf "$APP_DIR/packages/api/node_modules_root"
+    echo "[$(date)] ✓ Workspace dependencies merged"
+else
+    echo "[$(date)] ⚠ Warning: node_modules_root not found"
+fi
+
 # Create symlink to shared .env file for API
 echo "[$(date)] Creating symlink to shared .env file..."
 if [ -f "$SHARED_DIR/.env" ]; then
