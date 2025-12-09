@@ -17,8 +17,8 @@ phases:
   build:
     commands:
       - echo "Build started on $(date)"
-      - npm run build --workspace=packages/client
-      - npm run build --workspace=packages/api
+      - cd packages/client && npm run build && cd ../..
+      - cd packages/api && npm run build && cd ../..
       - echo "Build completed on $(date)"
       - echo "Build artifacts prepared"
   post_build:
