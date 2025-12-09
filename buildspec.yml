@@ -11,18 +11,14 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
-      - cd packages/api && npm ci && cd ../..
+      - cd packages/api && npm ci && npm rebuild && cd ../..
       - cd packages/client && npm ci && cd ../..
       - echo "Ended installing NPM dependencies on $(date)"
-      - echo "Debugging node_modules structure..."
-      - ls -la packages/api/node_modules/.bin/ || echo ".bin directory not found"
-      - test -f packages/api/node_modules/.bin/nest && echo "nest binary exists" || echo "nest binary missing"
-      - test -d packages/api/node_modules/@nestjs/cli && echo "@nestjs/cli package exists" || echo "@nestjs/cli package missing"
   build:
     commands:
       - echo "Build started on $(date)"
       - cd packages/client && npm run build && cd ../..
-      - cd packages/api && PATH="$PWD/node_modules/.bin:$PATH" npm run build && cd ../..
+      - cd packages/api && npx --yes @nestjs/cli build && cd ../..
       - echo "Build completed on $(date)"
       - echo "Build artifacts prepared"
   post_build:
