@@ -37,6 +37,13 @@ else
     echo "[$(date)] ⚠ Warning: Shared .env file not found at $SHARED_DIR/.env"
 fi
 
+# Rebuild native dependencies for the target platform
+echo "[$(date)] Rebuilding native dependencies for ARM64..."
+cd "$APP_DIR/packages/api"
+npm rebuild sharp --verbose || echo "[$(date)] ⚠ Warning: Failed to rebuild sharp"
+cd "$APP_DIR"
+echo "[$(date)] ✓ Native dependencies rebuilt"
+
 # Replace client environment variables
 echo "[$(date)] Replacing client env variables..."
 if [ -f "$APP_DIR/packages/client/.env.production" ]; then
