@@ -14,11 +14,14 @@ phases:
       - cd packages/api && npm ci && cd ../..
       - cd packages/client && npm ci && cd ../..
       - echo "Ended installing NPM dependencies on $(date)"
+      - echo "Verifying nest CLI installation..."
+      - ls -la packages/api/node_modules/.bin/ | grep nest || echo "nest binary not found"
+      - ls -la packages/api/node_modules/@nestjs/cli/ || echo "@nestjs/cli not found"
   build:
     commands:
       - echo "Build started on $(date)"
       - cd packages/client && npm run build && cd ../..
-      - cd packages/api && ./node_modules/.bin/nest build && cd ../..
+      - cd packages/api && node node_modules/@nestjs/cli/bin/nest.js build && cd ../..
       - echo "Build completed on $(date)"
       - echo "Build artifacts prepared"
   post_build:
