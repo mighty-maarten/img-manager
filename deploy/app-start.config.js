@@ -1,3 +1,19 @@
+const fs = require('fs');
+const path = require('path');
+
+// Read and parse .env file
+const envFile = fs.readFileSync('/opt/img-manager/shared/.env', 'utf8');
+const envVars = {};
+envFile.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+        const [key, ...valueParts] = trimmed.split('=');
+        if (key) {
+            envVars[key.trim()] = valueParts.join('=').trim();
+        }
+    }
+});
+
 module.exports = {
     apps: [
         {
@@ -10,10 +26,9 @@ module.exports = {
             watch: false,
             max_memory_restart: '500M',
             env: {
-                NODE_ENV: 'production',
+                ...envVars,
                 NODE_PATH: '/opt/img-manager/current/node_modules',
             },
-            env_file: '/opt/img-manager/shared/.env',
             out_file: '/var/log/img-manager/api-out.log',
             error_file: '/var/log/img-manager/api-error.log',
             log_date_format: 'YYYY-MM-DD HH:mm:ss Z',

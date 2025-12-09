@@ -381,6 +381,31 @@ log "✓ PostgreSQL configuration file created"
 chown postgres:postgres /var/lib/pgsql/data/postgresql.conf
 chmod 600 /var/lib/pgsql/data/postgresql.conf
 
+# Configure pg_hba.conf for password authentication
+log "Configuring pg_hba.conf for password authentication..."
+cat > /var/lib/pgsql/data/pg_hba.conf << 'EOF'
+# PostgreSQL Client Authentication Configuration File
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+
+# IPv4 local connections with password authentication
+host    all             all             127.0.0.1/32            md5
+
+# IPv6 local connections with password authentication
+host    all             all             ::1/128                 md5
+
+# Allow replication connections from localhost
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            md5
+host    replication     all             ::1/128                 md5
+EOF
+
+chown postgres:postgres /var/lib/pgsql/data/pg_hba.conf
+chmod 600 /var/lib/pgsql/data/pg_hba.conf
+log "✓ pg_hba.conf configured for md5 password authentication"
+
 # Create log directory
 mkdir -p /var/log/postgresql
 chown postgres:postgres /var/log/postgresql
@@ -437,36 +462,31 @@ DB_PASSWORD=$(echo $DB_SECRET | jq -r .password)
 DB_NAME=$(echo $DB_SECRET | jq -r .dbname)
 log "✓ Database credentials retrieved successfully"
 
-# Create database and user
-log "Creating database and user..."
+# Create database user with CREATEDB privilege (app will create database)
+log "Creating database user..."
 sudo -u postgres psql << EOF
--- Create user if not exists
+-- Create user if not exists with CREATEDB privilege
 DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = '$DB_USERNAME') THEN
-        CREATE USER $DB_USERNAME WITH PASSWORD '$DB_PASSWORD';
+        CREATE USER $DB_USERNAME WITH PASSWORD '$DB_PASSWORD' CREATEDB;
+    ELSE
+        ALTER USER $DB_USERNAME WITH PASSWORD '$DB_PASSWORD' CREATEDB;
     END IF;
 END
 \$\$;
-
--- Create database if not exists
-SELECT 'CREATE DATABASE $DB_NAME OWNER $DB_USERNAME'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME')\gexec
-
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USERNAME;
 EOF
 
 if [ $? -eq 0 ]; then
-    log "✓ Database and user created successfully"
+    log "✓ Database user created successfully with CREATEDB privilege"
 else
-    log "✗ Error: Failed to create database and user"
+    log "✗ Error: Failed to create database user"
     exit 1
 fi
 
-# Test database connectivity
+# Test database connectivity as the application user
 log "Testing database connectivity..."
-if sudo -u postgres psql -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
+if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U $DB_USERNAME -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
     log "✓ Database connectivity test successful"
 else
     log "✗ Error: Database connectivity test failed"
@@ -872,32 +892,27 @@ cat > /opt/img-manager/shared/.env << EOF
 # Application Configuration
 NODE_ENV=production
 PORT=3000
-APP_NAME=img-manager
 
-# Domain Configuration
-DOMAIN_NAME=${DOMAIN_NAME}
+# Application Settings
+APP_ALLOWED_ORIGINS=https://${DOMAIN_NAME}
+APP_IS_CLOUD=true
+APP_CLOUDWATCH_LOG_GROUP_NAME=${LOG_GROUP_NAME}
+APP_SNS_ERROR_TOPIC_ARN=${ERROR_SNS_TOPIC}
+APP_LOCAL_STORAGE_PATH=/opt/img-manager/shared/storage
+APP_ASSETS_BUCKET_NAME=${ASSETS_BUCKET}
 
 # Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=${DB_NAME}
-DB_USERNAME=${DB_USERNAME}
-DB_PASSWORD=${DB_PASSWORD}
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=${DB_NAME}
+DATABASE_USERNAME=${DB_USERNAME}
+DATABASE_PASSWORD=${DB_PASSWORD}
+
+# JWT Configuration
+JWT_SECRET=\$(openssl rand -base64 32)
 
 # AWS Configuration
 AWS_REGION=${REGION}
-ASSETS_BUCKET=${ASSETS_BUCKET}
-ERROR_SNS_TOPIC=${ERROR_SNS_TOPIC}
-LOG_GROUP_NAME=${LOG_GROUP_NAME}
-
-# Storage Configuration
-STORAGE_TYPE=s3
-STORAGE_PATH=/opt/img-manager/shared/storage
-
-# Application Settings
-LOG_LEVEL=info
-CORS_ORIGIN=https://${DOMAIN_NAME}
-RATE_LIMIT_MAX=100
 EOF
 
 log "✓ Environment configuration file created at /opt/img-manager/shared/.env"
