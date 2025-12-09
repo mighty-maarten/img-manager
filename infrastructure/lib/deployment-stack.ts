@@ -144,7 +144,7 @@ export class DeploymentStack extends cdk.Stack {
                 projectName: identifyResource(resourcePrefix, 'build'),
                 role: buildRole,
                 environment: {
-                    buildImage: LinuxBuildImage.AMAZON_LINUX_2_5,
+                    buildImage: LinuxBuildImage.AMAZON_LINUX_2_ARM_3,
                     computeType: ComputeType.SMALL,
                     privileged: false,
                 },
