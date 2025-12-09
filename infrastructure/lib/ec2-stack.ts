@@ -308,7 +308,7 @@ export class Ec2Stack extends cdk.Stack {
         // INSTANCE CREATION CONTROL
         // ============================================
         // Set to false to remove the instance, true to create/recreate it
-        const CREATE_INSTANCE = false;
+        const CREATE_INSTANCE = true;
         
         // ============================================
         // USERDATA SCRIPT VERSION CONTROL
