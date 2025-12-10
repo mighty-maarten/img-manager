@@ -22,6 +22,16 @@ if [ ! -f "$SHARED_DIR/.env.production" ]; then
     exit 1
 fi
 
+# Create symlink for .env.production in API directory
+echo "[$(date)] Creating .env.production symlink for application..."
+API_DIR="$APP_DIR/packages/api"
+if [ -d "$API_DIR" ]; then
+    ln -sf "$SHARED_DIR/.env.production" "$API_DIR/.env.production"
+    echo "[$(date)] ✓ .env.production symlink created at $API_DIR/.env.production"
+else
+    echo "[$(date)] ⚠ Warning: API directory not found at $API_DIR, symlink will be created during deployment"
+fi
+
 # Delete old PM2 processes if any
 echo "[$(date)] Cleaning up old PM2 processes..."
 pm2 delete all 2>/dev/null || echo "[$(date)] No existing PM2 processes to delete"

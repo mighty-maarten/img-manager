@@ -969,13 +969,13 @@ fi
 
 log "✓ Environment configuration file module completed"
 
-# Create symlink for application to find .env.production file
-log "Creating symlink for .env.production file..."
+# Prepare application directory structure
+log "Preparing application directory structure..."
 # The application will be deployed to /opt/img-manager/current/packages/api
-# and it looks for .env.production in its working directory
-# This will be created during deployment, but we prepare the structure
-mkdir -p /opt/img-manager/current/packages/api
+# The deployment process will create the necessary symlinks
+mkdir -p /opt/img-manager/current/packages
 chown -R ec2-user:ec2-user /opt/img-manager/current/packages
+
 log "✓ Application package directory structure prepared"
 
 
