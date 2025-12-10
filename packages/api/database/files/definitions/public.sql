@@ -125,7 +125,6 @@ CREATE TABLE public.processed_images (
     filename TEXT NOT NULL,
     bucket TEXT NOT NULL,
     key TEXT NOT NULL,
-    score INT,
     processing_run_id TEXT NOT NULL,
     source_image_id TEXT NOT NULL,
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
