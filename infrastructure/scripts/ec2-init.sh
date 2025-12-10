@@ -883,12 +883,31 @@ log "✓ Application directory structure module completed"
 # ==========================================
 log "Starting environment configuration file generation..."
 
+# Set up system-wide NODE_ENV=production
+log "Setting up system-wide NODE_ENV=production..."
+cat > /etc/profile.d/node-env.sh << 'EOF'
+# Set NODE_ENV to production for all users
+export NODE_ENV=production
+EOF
+
+chmod 644 /etc/profile.d/node-env.sh
+log "✓ System-wide NODE_ENV=production configured at /etc/profile.d/node-env.sh"
+
+# Add NODE_ENV to ec2-user's .bashrc
+log "Adding NODE_ENV to ec2-user's .bashrc..."
+if ! grep -q "export NODE_ENV=production" /home/ec2-user/.bashrc; then
+    echo "export NODE_ENV=production" >> /home/ec2-user/.bashrc
+    log "✓ NODE_ENV=production added to ec2-user's .bashrc"
+else
+    log "⚠ NODE_ENV=production already present in ec2-user's .bashrc"
+fi
+
 # Retrieve database credentials from Secrets Manager (already retrieved earlier)
 log "Using database credentials retrieved earlier..."
 
-# Create .env file at /opt/img-manager/shared/.env
-log "Creating environment configuration file..."
-cat > /opt/img-manager/shared/.env << EOF
+# Create .env.production file at /opt/img-manager/shared/.env.production
+log "Creating production environment configuration file..."
+cat > /opt/img-manager/shared/.env.production << EOF
 # Application Configuration
 NODE_ENV=production
 PORT=3000
@@ -909,36 +928,45 @@ DATABASE_USERNAME=${DB_USERNAME}
 DATABASE_PASSWORD=${DB_PASSWORD}
 
 # JWT Configuration
-JWT_SECRET=\$(openssl rand -base64 32)
+JWT_SECRET=$(openssl rand -base64 32)
 
 # AWS Configuration
 AWS_REGION=${REGION}
 EOF
 
-log "✓ Environment configuration file created at /opt/img-manager/shared/.env"
+log "✓ Production environment configuration file created at /opt/img-manager/shared/.env.production"
 
 # Set file permissions to 600 for security
-log "Setting .env file permissions..."
-chown ec2-user:ec2-user /opt/img-manager/shared/.env
-chmod 600 /opt/img-manager/shared/.env
+log "Setting .env.production file permissions..."
+chown ec2-user:ec2-user /opt/img-manager/shared/.env.production
+chmod 600 /opt/img-manager/shared/.env.production
 
-log "✓ .env file permissions set (600)"
+log "✓ .env.production file permissions set (600)"
 
-# Verify .env file exists with correct permissions
-log "Verifying .env file..."
-if [ -f "/opt/img-manager/shared/.env" ]; then
-    PERMS=$(stat -c "%a" /opt/img-manager/shared/.env)
+# Verify .env.production file exists with correct permissions
+log "Verifying .env.production file..."
+if [ -f "/opt/img-manager/shared/.env.production" ]; then
+    PERMS=$(stat -c "%a" /opt/img-manager/shared/.env.production)
     if [ "$PERMS" = "600" ]; then
-        log "✓ .env file exists with correct permissions (600)"
+        log "✓ .env.production file exists with correct permissions (600)"
     else
-        log "⚠ Warning: .env file has incorrect permissions ($PERMS, expected 600)"
+        log "⚠ Warning: .env.production file has incorrect permissions ($PERMS, expected 600)"
     fi
 else
-    log "✗ Error: .env file not found"
+    log "✗ Error: .env.production file not found"
     exit 1
 fi
 
 log "✓ Environment configuration file module completed"
+
+# Create symlink for application to find .env.production file
+log "Creating symlink for .env.production file..."
+# The application will be deployed to /opt/img-manager/current/packages/api
+# and it looks for .env.production in its working directory
+# This will be created during deployment, but we prepare the structure
+mkdir -p /opt/img-manager/current/packages/api
+chown -R ec2-user:ec2-user /opt/img-manager/current/packages
+log "✓ Application package directory structure prepared"
 
 
 # ==========================================
@@ -1045,10 +1073,10 @@ if [ -n "$FAILED_SERVICES" ]; then
     log "⚠ Warning: Some services are not active:$FAILED_SERVICES"
 fi
 
-# Test database connectivity
+# Test database connectivity (connect to postgres database, not app database which doesn't exist yet)
 log "Testing database connectivity..."
-if sudo -u postgres psql -d $DB_NAME -c "SELECT 1;" >/dev/null 2>&1; then
-    log "✓ Database connectivity test successful"
+if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U $DB_USERNAME -d postgres -c "SELECT 1;" >/dev/null 2>&1; then
+    log "✓ Database connectivity test successful (user can connect to postgres database)"
 else
     log "✗ Error: Database connectivity test failed"
     exit 1
