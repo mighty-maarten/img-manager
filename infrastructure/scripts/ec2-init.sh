@@ -885,6 +885,16 @@ log "Starting environment configuration file generation..."
 
 # Set up system-wide NODE_ENV=production
 log "Setting up system-wide NODE_ENV=production..."
+
+# Set NODE_ENV in /etc/environment (read by all processes including SSM sessions)
+if ! grep -q "NODE_ENV=production" /etc/environment; then
+    echo "NODE_ENV=production" >> /etc/environment
+    log "✓ NODE_ENV=production added to /etc/environment"
+else
+    log "⚠ NODE_ENV=production already present in /etc/environment"
+fi
+
+# Also set in profile.d for login shells
 cat > /etc/profile.d/node-env.sh << 'EOF'
 # Set NODE_ENV to production for all users
 export NODE_ENV=production
