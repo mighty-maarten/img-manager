@@ -70,7 +70,7 @@ export class Ec2Stack extends cdk.Stack {
                     port: 5432,
                 }),
                 generateStringKey: 'password',
-                excludeCharacters: '"@/\\\'',
+                excludeCharacters: '"@/\\\'#$%^&*(){}[]|;:,.<>?`~=_+-',
                 passwordLength: 32,
             },
         });
