@@ -193,18 +193,73 @@ log "Starting SSL certificate generation..."
 log "Waiting 30 seconds for DNS propagation..."
 sleep 30
 
-# Obtain SSL certificate from Let's Encrypt
-log "Requesting SSL certificate from Let's Encrypt..."
-if certbot certonly --nginx \
+# Step 1: Create HTTP-only configuration for SSL certificate generation
+log "Creating HTTP-only configuration for SSL certificate generation..."
+cat > /etc/nginx/nginx.conf << 'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log notice;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    keepalive_timeout   65;
+    types_hash_max_size 4096;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    # HTTP server for SSL certificate generation
+    server {
+        listen 80;
+        server_name _;
+
+        # Certbot ACME challenge location
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        # Default location - placeholder until application is deployed
+        location / {
+            return 200 "Server is ready. Application will be available after deployment.";
+            add_header Content-Type text/plain;
+        }
+    }
+}
+EOF
+
+# Test and reload nginx with HTTP-only configuration
+log "Testing and reloading Nginx with HTTP-only configuration..."
+if nginx -t && systemctl reload nginx; then
+    log "✓ HTTP-only configuration applied successfully"
+else
+    log "✗ Error: Failed to apply HTTP-only configuration"
+    exit 1
+fi
+
+# Step 2: Generate SSL certificate using webroot method
+log "Requesting SSL certificate from Let's Encrypt using webroot method..."
+if certbot certonly --webroot \
+    --webroot-path /var/www/certbot \
     --non-interactive \
     --agree-tos \
     --email admin@${DOMAIN_NAME} \
-    --domains ${DOMAIN_NAME} \
-    --webroot-path /var/www/certbot; then
+    --domains ${DOMAIN_NAME}; then
     log "✓ SSL certificate obtained successfully"
     
-    # Update Nginx configuration to use SSL
-    log "Updating Nginx configuration for HTTPS..."
+    # Step 3: Create final HTTPS configuration with application proxy
+    log "Creating final HTTPS configuration with application proxy..."
     cat > /etc/nginx/nginx.conf << EOF
 user nginx;
 worker_processes auto;
@@ -233,7 +288,7 @@ http {
     # HTTP server - redirect to HTTPS
     server {
         listen 80;
-        server_name _;
+        server_name ${DOMAIN_NAME};
 
         # Certbot ACME challenge location
         location /.well-known/acme-challenge/ {
@@ -246,9 +301,10 @@ http {
         }
     }
 
-    # HTTPS server
+    # HTTPS server with application proxy
     server {
-        listen 443 ssl http2;
+        listen 443 ssl;
+        http2 on;
         server_name ${DOMAIN_NAME};
 
         ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
@@ -259,23 +315,40 @@ http {
         ssl_ciphers HIGH:!aNULL:!MD5;
         ssl_prefer_server_ciphers on;
 
-        # Default location
+        # Proxy to Node.js application
         location / {
-            return 200 "HTTPS is configured and working!";
+            # Check if application is running on port 3000, otherwise show placeholder
+            proxy_pass http://127.0.0.1:3000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_cache_bypass \$http_upgrade;
+            
+            # Fallback for when application is not yet deployed
+            error_page 502 503 504 @fallback;
+        }
+        
+        # Fallback location for when application is not running
+        location @fallback {
+            return 200 "HTTPS is configured. Application will be available after deployment.";
             add_header Content-Type text/plain;
         }
     }
 }
 EOF
     
-    log "✓ Nginx HTTPS configuration created"
+    log "✓ Final HTTPS configuration with application proxy created"
     
-    # Reload Nginx to apply SSL configuration
-    log "Reloading Nginx with SSL configuration..."
-    if systemctl reload nginx; then
-        log "✓ Nginx reloaded successfully with SSL"
+    # Test and reload Nginx with HTTPS configuration
+    log "Testing and reloading Nginx with HTTPS configuration..."
+    if nginx -t && systemctl reload nginx; then
+        log "✓ Nginx reloaded successfully with HTTPS and application proxy"
     else
-        log "✗ Error: Failed to reload Nginx"
+        log "✗ Error: Failed to reload Nginx with HTTPS configuration"
         exit 1
     fi
     
@@ -292,10 +365,19 @@ EOF
     else
         log "⚠ Warning: Failed to start certbot auto-renewal timer"
     fi
+    
+    # Verify HTTPS is working
+    log "Verifying HTTPS configuration..."
+    if curl -I https://${DOMAIN_NAME}/ >/dev/null 2>&1; then
+        log "✓ HTTPS verification successful"
+    else
+        log "⚠ Warning: HTTPS verification failed, but configuration is in place"
+    fi
+    
 else
     log "⚠ Warning: Failed to obtain SSL certificate"
     log "⚠ Continuing with HTTP-only configuration"
-    log "⚠ You can manually run: certbot --nginx -d ${DOMAIN_NAME}"
+    log "⚠ You can manually run: certbot certonly --webroot --webroot-path /var/www/certbot -d ${DOMAIN_NAME}"
 fi
 
 log "✓ SSL certificate generation module completed"
@@ -1110,6 +1192,78 @@ log "  Disk: $(df -h / | tail -1 | awk '{print $3 "/" $2 " (" $5 " used)"}')"
 log "  Load average: $(uptime | awk -F'load average:' '{print $2}')"
 
 log "✓ Comprehensive verification module completed"
+
+
+# ==========================================
+# Post-Deployment Configuration Module
+# ==========================================
+log "Creating post-deployment configuration scripts..."
+
+# Create a script to verify and update Nginx configuration after application deployment
+cat > /opt/img-manager/shared/update-nginx-for-app.sh << 'EOF'
+#!/bin/bash
+# Post-deployment script to ensure Nginx is properly configured for the application
+
+log() {
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $1"
+}
+
+log "Checking if application is running on port 3000..."
+if netstat -tlnp | grep -q ":3000"; then
+    log "✓ Application is running on port 3000"
+    
+    # Test if Nginx can proxy to the application
+    if curl -f http://127.0.0.1:3000/ >/dev/null 2>&1; then
+        log "✓ Application is responding on port 3000"
+        
+        # Test HTTPS access
+        if curl -f https://img-manager.mighty.be/ >/dev/null 2>&1; then
+            log "✓ HTTPS proxy is working correctly"
+        else
+            log "⚠ HTTPS proxy may need configuration check"
+            # Reload nginx to ensure latest configuration is active
+            systemctl reload nginx
+            log "✓ Nginx configuration reloaded"
+        fi
+    else
+        log "⚠ Application is not responding on port 3000"
+    fi
+else
+    log "⚠ Application is not running on port 3000 yet"
+fi
+
+log "Post-deployment configuration check completed"
+EOF
+
+# Make the script executable
+chmod +x /opt/img-manager/shared/update-nginx-for-app.sh
+chown ec2-user:ec2-user /opt/img-manager/shared/update-nginx-for-app.sh
+
+log "✓ Post-deployment configuration script created at /opt/img-manager/shared/update-nginx-for-app.sh"
+
+# Create a systemd service to run the post-deployment check
+cat > /etc/systemd/system/nginx-app-check.service << 'EOF'
+[Unit]
+Description=Check and update Nginx configuration for application
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/img-manager/shared/update-nginx-for-app.sh
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable the service (it will be triggered manually after deployment)
+systemctl daemon-reload
+systemctl enable nginx-app-check.service
+
+log "✓ Post-deployment Nginx check service created and enabled"
+log "✓ Post-deployment configuration module completed"
 
 
 # ==========================================

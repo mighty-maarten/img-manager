@@ -50,5 +50,13 @@ fi
 # Show PM2 status
 pm2 list
 
+# Run post-deployment Nginx configuration check
+echo "[$(date)] Running post-deployment Nginx configuration check..."
+if [ -f "/opt/img-manager/shared/update-nginx-for-app.sh" ]; then
+    /opt/img-manager/shared/update-nginx-for-app.sh
+else
+    echo "[$(date)] ⚠ Post-deployment script not found, skipping Nginx check"
+fi
+
 echo "[$(date)] ✓ ApplicationStart hook completed successfully"
 exit 0
