@@ -26,7 +26,7 @@ ls -la /opt/img-manager/current/packages/api/dist/src/
 
 echo ""
 echo "=== Check environment file ==="
-ls -la /opt/img-manager/shared/.env
+ls -la /opt/img-manager/shared/.env.production
 
 echo ""
 echo "=== Test local health endpoint ==="

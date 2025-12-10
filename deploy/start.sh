@@ -16,9 +16,9 @@ cd "$APP_DIR" || {
     exit 1
 }
 
-# Verify .env file exists
-if [ ! -f "$SHARED_DIR/.env" ]; then
-    echo "[$(date)] ✗ Error: Environment file not found at $SHARED_DIR/.env"
+# Verify .env.production file exists
+if [ ! -f "$SHARED_DIR/.env.production" ]; then
+    echo "[$(date)] ✗ Error: Environment file not found at $SHARED_DIR/.env.production"
     exit 1
 fi
 

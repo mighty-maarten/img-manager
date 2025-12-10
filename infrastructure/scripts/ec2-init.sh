@@ -1139,7 +1139,7 @@ Directory Structure:
 
 Configuration Files:
 -------------------
-✓ /opt/img-manager/shared/.env (environment variables)
+✓ /opt/img-manager/shared/.env.production (environment variables)
 ✓ /opt/img-manager/shared/deployment_info.json (metadata)
 ✓ /etc/nginx/nginx.conf (web server configuration)
 ✓ /var/lib/pgsql/data/postgresql.conf (database configuration)

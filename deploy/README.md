@@ -55,7 +55,7 @@ PM2 configuration file for the application.
 
 ## Environment Variables
 
-The application expects a `.env` file at `/opt/img-manager/shared/.env` with:
+The application expects a `.env.production` file at `/opt/img-manager/shared/.env.production` with:
 
 ```bash
 NODE_ENV=production

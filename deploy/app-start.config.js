@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Read and parse .env file
-const envFile = fs.readFileSync('/opt/img-manager/shared/.env', 'utf8');
+// Read and parse .env.production file
+const envFile = fs.readFileSync('/opt/img-manager/shared/.env.production', 'utf8');
 const envVars = {};
 envFile.split('\n').forEach(line => {
     const trimmed = line.trim();

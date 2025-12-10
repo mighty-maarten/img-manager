@@ -162,20 +162,20 @@ echo ""
 
 echo "8. Checking Configuration Files..."
 echo "------------------------------"
-check_file "/opt/img-manager/shared/.env" "Environment configuration"
+check_file "/opt/img-manager/shared/.env.production" "Environment configuration"
 check_file "/opt/img-manager/shared/deployment_info.json" "Deployment metadata"
 check_file "/var/log/user-data-completed" "Initialization completion marker"
 echo ""
 
 echo "9. Checking File Permissions..."
 echo "------------------------------"
-if [ -f "/opt/img-manager/shared/.env" ]; then
-    PERMS=$(stat -c "%a" /opt/img-manager/shared/.env)
+if [ -f "/opt/img-manager/shared/.env.production" ]; then
+    PERMS=$(stat -c "%a" /opt/img-manager/shared/.env.production")
     if [ "$PERMS" = "600" ]; then
-        echo "✓ .env file has correct permissions (600)"
+        echo "✓ .env.production file has correct permissions (600)"
         ((PASSED_CHECKS++))
     else
-        echo "✗ .env file has incorrect permissions ($PERMS, expected 600)"
+        echo "✗ .env.production file has incorrect permissions ($PERMS, expected 600)"
         ((FAILED_CHECKS++))
     fi
 fi
