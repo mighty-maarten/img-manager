@@ -41,7 +41,7 @@ export interface EnvironmentConfig {
     /** Comma-separated list of allowed CORS origins */
     readonly allowedOrigins: string;
     /** Whether it is allowed to perform a database setup */
-    readonly allowDatabaseSetup: string;
+    readonly allowDatabaseSetup: boolean;
     /** Whether the application is running in cloud mode */
     readonly isCloud: boolean;
     /** CloudWatch log group name for application logs */
