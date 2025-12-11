@@ -11,7 +11,7 @@ phases:
   pre_build:
     commands:
       - echo "Started installing NPM dependencies on $(date)"
-      - npm ci
+      - npm ci --include=dev
       - echo "Ended installing NPM dependencies on $(date)"
   build:
     commands:
