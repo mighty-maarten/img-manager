@@ -51,8 +51,10 @@ import { join } from 'path';
             rootPath: join(__dirname, '../../..', 'client/dist'),
             exclude: ['/api/{*path}', '/status'],
             serveStaticOptions: {
-                fallthrough: false,
+                index: ['index.html'],
+                fallthrough: true,
             },
+            renderPath: '/{*path}',
         }),
         // Routes
         RouterModule.register(routes),
