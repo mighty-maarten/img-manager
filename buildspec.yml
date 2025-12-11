@@ -23,11 +23,9 @@ phases:
       - echo "Generating .env.build file..."
       - |
         cat > packages/api/.env.build << EOF
-        NODE_ENV=production
-        PORT=3000
-        NODE_ENV: nodeEnvironment,
+        NODE_ENV=${NODE_ENV}
+        APP_PORT=3000
         APP_ALLOW_DATABASE_SETUP=${APP_ALLOW_DATABASE_SETUP}
-        APP_PORT: '3000',
         APP_ALLOWED_ORIGINS=${APP_ALLOWED_ORIGINS}
         APP_IS_CLOUD=${APP_IS_CLOUD}
         APP_CLOUDWATCH_LOG_GROUP_NAME=${APP_CLOUDWATCH_LOG_GROUP_NAME}
@@ -38,6 +36,7 @@ phases:
         DOMAIN_NAME=${DOMAIN_NAME}
         EOF
       - echo ".env.build file generated"
+      - cat packages/api/.env.build
       - echo "Build artifacts prepared"
   post_build:
     commands:
