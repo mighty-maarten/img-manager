@@ -20,6 +20,24 @@ phases:
       - npm run build --workspace=packages/client
       - npm run build --workspace=packages/api
       - echo "Build completed on $(date)"
+      - echo "Generating .env.build file..."
+      - |
+        cat > packages/api/.env.build << EOF
+        NODE_ENV=production
+        PORT=3000
+        NODE_ENV: nodeEnvironment,
+        APP_ALLOW_DATABASE_SETUP=${APP_ALLOW_DATABASE_SETUP}
+        APP_PORT: '3000',
+        APP_ALLOWED_ORIGINS=${APP_ALLOWED_ORIGINS}
+        APP_IS_CLOUD=${APP_IS_CLOUD}
+        APP_CLOUDWATCH_LOG_GROUP_NAME=${APP_CLOUDWATCH_LOG_GROUP_NAME}
+        APP_SNS_ERROR_TOPIC_ARN=${APP_SNS_ERROR_TOPIC_ARN}
+        APP_ASSETS_BUCKET_NAME=${APP_ASSETS_BUCKET_NAME}
+        APP_LOCAL_STORAGE_PATH=/opt/img-manager/shared/storage
+        AWS_REGION=${AWS_REGION}
+        DOMAIN_NAME=${DOMAIN_NAME}
+        EOF
+      - echo ".env.build file generated"
       - echo "Build artifacts prepared"
   post_build:
     commands:
@@ -33,6 +51,7 @@ artifacts:
     - packages/api/dist/**/*
     - packages/api/package.json
     - packages/api/database/**/*
+    - packages/api/.env.build
     - packages/client/dist/**/*
     - deploy/**/*
   discard-paths: no

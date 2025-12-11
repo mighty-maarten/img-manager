@@ -111,29 +111,6 @@ const ec2Stack = new Ec2Stack(app, identifyResource(resourcePrefix, 'ec2-stack')
     hostedZoneName: hostedZoneName,
     secretsWildcardArn: secretsWildcardArn,
     errorSNSTopicARN: snsStack.snsTopicArn,
-    taskEnv: {
-        NODE_ENV: nodeEnvironment,
-        APP_ALLOW_DATABASE_SETUP: allowDatabaseSetup.toString(),
-        APP_ALLOWED_ORIGINS: allowedOrigins.join(','),
-        APP_PORT: '3000',
-        APP_CLOUDWATCH_LOG_GROUP_NAME: sharedStack.cloudwatchLogs.logGroupName,
-        APP_SNS_ERROR_TOPIC_ARN: snsStack.snsTopicArn,
-        APP_IS_CLOUD: true.toString(),
-        APP_ASSETS_BUCKET_NAME: sharedStack.assetsBucket.bucketName,
-        APP_LOCAL_STORAGE_PATH: '/usr/app/storage',
-        JWT_SECRET: 'this_is_a_secure_jwt_secret', // TODO @MT: Replace with a proper secret management solution
-        JWT_EXPIRES_IN: '7days',
-        DATABASE_SSL: false.toString(), // No SSL for localhost connection
-        // Database configuration for local PostgreSQL (password will be added from Secrets Manager)
-        DATABASE_HOST: 'localhost',
-        DATABASE_PORT: '5432',
-        DATABASE_USERNAME: 'img_manager_user',
-        DATABASE_NAME: 'img_manager',
-        // Legacy environment variables (keeping for compatibility)
-        DB_HOST: 'localhost',
-        DB_PORT: '5432',
-        region: region,
-    },
     env: {
         account: accountId,
         region: region,
@@ -153,6 +130,17 @@ const deploymentStack = new DeploymentStack(
         deploymentTargetTag: identifyResource(resourcePrefix, 'deployment-target'),
         notificationTopicArn: snsStack.snsTopicArn,
         requireManualApproval: deployApprovalNeeded,
+        environmentConfig: {
+            domainName: domainName,
+            allowDatabaseSetup: allowDatabaseSetup,
+            nodeEnv: nodeEnvironment,
+            allowedOrigins: allowedOrigins.join(','),
+            isCloud: true,
+            cloudwatchLogGroupName: sharedStack.cloudwatchLogs.logGroupName,
+            snsErrorTopicArn: snsStack.snsTopicArn,
+            assetsBucketName: sharedStack.assetsBucket.bucketName,
+            awsRegion: region,
+        },
         env: {
             account: accountId,
             region: region,

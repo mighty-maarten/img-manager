@@ -45,7 +45,6 @@ interface Ec2StackProps extends StackProps {
     readonly hostedZoneName: string;
     readonly secretsWildcardArn: string;
     readonly errorSNSTopicARN: string;
-    readonly taskEnv: { [key: string]: string };
 }
 
 export class Ec2Stack extends cdk.Stack {

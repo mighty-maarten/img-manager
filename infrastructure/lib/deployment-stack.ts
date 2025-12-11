@@ -29,6 +29,31 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 
+/**
+ * Configuration for environment-specific variables that are injected at build time.
+ * These are non-sensitive values that can be safely included in deployment artifacts.
+ */
+export interface EnvironmentConfig {
+    /** The domain name for the application (e.g., 'api.example.com') */
+    readonly domainName: string;
+     /** The node environment for the application (e.g., 'production') */
+    readonly nodeEnv: string;
+    /** Comma-separated list of allowed CORS origins */
+    readonly allowedOrigins: string;
+    /** Whether it is allowed to perform a database setup */
+    readonly allowDatabaseSetup: string;
+    /** Whether the application is running in cloud mode */
+    readonly isCloud: boolean;
+    /** CloudWatch log group name for application logs */
+    readonly cloudwatchLogGroupName: string;
+    /** SNS topic ARN for error notifications */
+    readonly snsErrorTopicArn: string;
+    /** S3 bucket name for storing assets */
+    readonly assetsBucketName: string;
+    /** AWS region for the deployment */
+    readonly awsRegion: string;
+}
+
 interface DeploymentStackProps extends StackProps {
     readonly resourcePrefix: string;
     readonly githubOwner: string;
@@ -38,6 +63,8 @@ interface DeploymentStackProps extends StackProps {
     readonly deploymentTargetTag: string;
     readonly notificationTopicArn: string;
     readonly requireManualApproval?: boolean;
+    /** Environment configuration for build-time variables */
+    readonly environmentConfig: EnvironmentConfig;
 }
 
 export class DeploymentStack extends cdk.Stack {
@@ -147,6 +174,17 @@ export class DeploymentStack extends cdk.Stack {
                     buildImage: LinuxBuildImage.AMAZON_LINUX_2_ARM_3,
                     computeType: ComputeType.SMALL,
                     privileged: false,
+                    environmentVariables: {
+                        NODE_ENV: { value: props.environmentConfig.nodeEnv },
+                        DOMAIN_NAME: { value: props.environmentConfig.domainName },
+                        APP_ALLOWED_ORIGINS: { value: props.environmentConfig.allowedOrigins },
+                        APP_ALLOW_DATABASE_SETUP: { value: props.environmentConfig.allowDatabaseSetup },
+                        APP_IS_CLOUD: { value: String(props.environmentConfig.isCloud) },
+                        APP_CLOUDWATCH_LOG_GROUP_NAME: { value: props.environmentConfig.cloudwatchLogGroupName },
+                        APP_SNS_ERROR_TOPIC_ARN: { value: props.environmentConfig.snsErrorTopicArn },
+                        APP_ASSETS_BUCKET_NAME: { value: props.environmentConfig.assetsBucketName },
+                        AWS_REGION: { value: props.environmentConfig.awsRegion },
+                    },
                 },
                 buildSpec: BuildSpec.fromSourceFilename('buildspec.yml'),
                 cache: cdk.aws_codebuild.Cache.local(
@@ -315,6 +353,44 @@ export class DeploymentStack extends cdk.Stack {
         new cdk.CfnOutput(this, 'ArtifactsBucketName', {
             value: this.artifactsBucket.bucketName,
             description: 'S3 bucket for deployment artifacts',
+        });
+
+        // ==========================================
+        // ENVIRONMENT CONFIGURATION OUTPUTS
+        // ==========================================
+        new cdk.CfnOutput(this, 'EnvDomainName', {
+            value: props.environmentConfig.domainName,
+            description: 'Configured domain name for the application',
+        });
+
+        new cdk.CfnOutput(this, 'EnvAllowedOrigins', {
+            value: props.environmentConfig.allowedOrigins,
+            description: 'Configured CORS allowed origins',
+        });
+
+        new cdk.CfnOutput(this, 'EnvIsCloud', {
+            value: String(props.environmentConfig.isCloud),
+            description: 'Whether the application is running in cloud mode',
+        });
+
+        new cdk.CfnOutput(this, 'EnvCloudwatchLogGroupName', {
+            value: props.environmentConfig.cloudwatchLogGroupName,
+            description: 'Configured CloudWatch log group name',
+        });
+
+        new cdk.CfnOutput(this, 'EnvSnsErrorTopicArn', {
+            value: props.environmentConfig.snsErrorTopicArn,
+            description: 'Configured SNS error topic ARN',
+        });
+
+        new cdk.CfnOutput(this, 'EnvAssetsBucketName', {
+            value: props.environmentConfig.assetsBucketName,
+            description: 'Configured S3 assets bucket name',
+        });
+
+        new cdk.CfnOutput(this, 'EnvAwsRegion', {
+            value: props.environmentConfig.awsRegion,
+            description: 'Configured AWS region',
         });
     }
 }

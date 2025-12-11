@@ -1,0 +1,92 @@
+# Implementation Plan
+
+- [ ] 1. Extend DeploymentStack with environment configuration
+  - [x] 1.1 Add EnvironmentConfig interface to deployment-stack.ts
+    - Define interface with domainName, allowedOrigins, isCloud, cloudwatchLogGroupName, snsErrorTopicArn, assetsBucketName, awsRegion
+    - Add environmentConfig property to DeploymentStackProps
+    - _Requirements: 4.1_
+  - [x] 1.2 Update CodeBuild project to pass environment variables
+    - Add environmentVariables to PipelineProject configuration
+    - Map EnvironmentConfig properties to CodeBuild environment variables
+    - _Requirements: 4.2_
+  - [ ]* 1.3 Write property test for CDK defaults
+    - **Property 5: CDK defaults are applied when environment config is not provided**
+    - **Validates: Requirements 4.3**
+  - [x] 1.4 Add stack outputs for environment configuration
+    - Output configured environment values for verification
+    - _Requirements: 4.4_
+
+- [x] 2. Update buildspec.yml to generate .env.build file
+  - [x] 2.1 Add build commands to generate .env.build
+    - Create .env.build file with all non-sensitive environment variables
+    - Include NODE_ENV, PORT, APP_ALLOWED_ORIGINS, APP_IS_CLOUD, APP_CLOUDWATCH_LOG_GROUP_NAME, APP_SNS_ERROR_TOPIC_ARN, APP_ASSETS_BUCKET_NAME, APP_LOCAL_STORAGE_PATH, AWS_REGION, DOMAIN_NAME
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 2.2 Update artifacts section to include .env.build
+    - Add packages/api/.env.build to deployment artifact
+    - _Requirements: 1.2_
+  - [ ]* 2.3 Write property test for build-time config generation
+    - **Property 1: Build-time config contains all required non-sensitive variables**
+    - **Validates: Requirements 1.3**
+  - [ ]* 2.4 Write property test for sensitive data exclusion
+    - **Property 2: Build-time config excludes sensitive credentials**
+    - **Validates: Requirements 1.4**
+
+- [x] 3. Update deployment scripts to merge config with secrets
+  - [x] 3.1 Create environment merge script (deploy/merge-env.sh)
+    - Script to retrieve secrets from Secrets Manager
+    - Merge .env.build with runtime secrets into .env.production
+    - Set file permissions to 600
+    - _Requirements: 2.1, 2.2, 2.3, 5.1, 5.2_
+  - [x] 3.2 Add validation function to verify complete configuration
+    - Check that all required variables are present in merged file
+    - Fail deployment if validation fails
+    - _Requirements: 5.3, 5.4_
+  - [x] 3.3 Update after-install.sh to call merge script
+    - Call merge-env.sh instead of creating symlink to shared .env
+    - Pass DB_SECRET_ARN and AWS_REGION to merge script
+    - _Requirements: 5.1_
+  - [ ]* 3.4 Write property test for config merge
+    - **Property 3: Merged config contains both build-time and runtime values**
+    - **Validates: Requirements 2.2, 5.2**
+  - [ ]* 3.5 Write property test for config validation
+    - **Property 4: Final config validation passes only with complete configuration**
+    - **Validates: Requirements 5.4**
+
+- [x] 4. Simplify EC2 init script
+  - [x] 4.1 Remove .env.production generation from ec2-init.sh
+    - Remove the "Environment Configuration File Module" section that creates .env.production
+    - Keep directory structure creation
+    - _Requirements: 3.1, 3.2_
+  - [x] 4.2 Update EC2 init to store DB_SECRET_ARN for deployment scripts
+    - Create /opt/img-manager/shared/secrets-config.sh with DB_SECRET_ARN and AWS_REGION
+    - This file will be sourced by deployment scripts
+    - _Requirements: 3.3_
+  - [ ]* 4.3 Write unit tests for EC2 init script changes
+    - Verify directory structure is created
+    - Verify .env.production is NOT created
+    - Verify secrets-config.sh is created with correct content
+    - _Requirements: 3.1, 3.2, 3.3_
+
+- [x] 5. Update infrastructure entry point with environment config
+  - [x] 5.1 Update infrastructure/bin/infrastructure.ts
+    - Pass environmentConfig to DeploymentStack
+    - Configure values from infra-environment or use defaults
+    - _Requirements: 4.1, 4.2_
+  - [ ]* 5.2 Write unit tests for infrastructure configuration
+    - Verify environment config is passed correctly to DeploymentStack
+    - _Requirements: 4.1, 4.2_
+
+- [ ] 6. Checkpoint - Make sure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 7. Update start.sh to use new environment file location
+  - [x] 7.1 Update start.sh to verify merged .env.production exists
+    - Check for .env.production in shared directory
+    - Fail with clear error if not found
+    - _Requirements: 2.4_
+  - [ ]* 7.2 Write unit tests for start.sh changes
+    - Verify script fails gracefully when .env.production is missing
+    - _Requirements: 2.4_
+
+- [ ] 8. Final Checkpoint - Make sure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

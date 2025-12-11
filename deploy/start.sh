@@ -1,4 +1,8 @@
 #!/bin/bash
+# start.sh - Application start script for CodeDeploy ApplicationStart hook
+# This script verifies the merged .env.production exists and starts the application
+#
+# Requirements: 2.4
 
 echo "[$(date)] ApplicationStart hook started"
 
@@ -9,6 +13,7 @@ export NVM_DIR="/home/ec2-user/.nvm"
 # Set working directory
 APP_DIR="/opt/img-manager/current"
 SHARED_DIR="/opt/img-manager/shared"
+ENV_PRODUCTION_FILE="$SHARED_DIR/.env.production"
 
 echo "[$(date)] Working directory: $APP_DIR"
 cd "$APP_DIR" || {
@@ -16,11 +21,37 @@ cd "$APP_DIR" || {
     exit 1
 }
 
-# Verify .env.production file exists
-if [ ! -f "$SHARED_DIR/.env.production" ]; then
-    echo "[$(date)] ✗ Error: Environment file not found at $SHARED_DIR/.env.production"
+# Verify merged .env.production file exists
+# This file should have been created by merge-env.sh during the AfterInstall hook
+# It contains both build-time variables (from .env.build) and runtime secrets (from Secrets Manager)
+echo "[$(date)] Verifying merged environment configuration..."
+if [ ! -f "$ENV_PRODUCTION_FILE" ]; then
+    echo "[$(date)] ✗ ERROR: Merged environment file not found at $ENV_PRODUCTION_FILE"
+    echo "[$(date)]   This file should have been created by merge-env.sh during deployment."
+    echo "[$(date)]   Possible causes:"
+    echo "[$(date)]     1. The AfterInstall hook (after-install.sh) did not run successfully"
+    echo "[$(date)]     2. The merge-env.sh script failed to create the merged configuration"
+    echo "[$(date)]     3. The .env.build file was missing from the deployment artifact"
+    echo "[$(date)]     4. AWS Secrets Manager credentials could not be retrieved"
+    echo "[$(date)]   Check the CodeDeploy deployment logs for more details."
     exit 1
 fi
+
+# Verify the file is readable
+if [ ! -r "$ENV_PRODUCTION_FILE" ]; then
+    echo "[$(date)] ✗ ERROR: Environment file exists but is not readable: $ENV_PRODUCTION_FILE"
+    echo "[$(date)]   Check file permissions and ownership."
+    exit 1
+fi
+
+# Verify the file is not empty
+if [ ! -s "$ENV_PRODUCTION_FILE" ]; then
+    echo "[$(date)] ✗ ERROR: Environment file exists but is empty: $ENV_PRODUCTION_FILE"
+    echo "[$(date)]   The merge-env.sh script may have failed during configuration generation."
+    exit 1
+fi
+
+echo "[$(date)] ✓ Merged environment configuration verified at $ENV_PRODUCTION_FILE"
 
 # Create symlink for .env.production in API directory
 echo "[$(date)] Creating .env.production symlink for application..."

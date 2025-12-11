@@ -27,13 +27,27 @@ else
     exit 1
 fi
 
-# Create symlink to shared .env file for API
-echo "[$(date)] Creating symlink to shared .env file..."
-if [ -f "$SHARED_DIR/.env" ]; then
-    ln -sf "$SHARED_DIR/.env" "$APP_DIR/packages/api/.env.production"
-    echo "[$(date)] ✓ Symlink created: $APP_DIR/packages/api/.env.production -> $SHARED_DIR/.env"
+# Merge build-time config with runtime secrets
+echo "[$(date)] Merging environment configuration..."
+if [ -f "$APP_DIR/deploy/merge-env.sh" ]; then
+    # Make merge script executable
+    chmod +x "$APP_DIR/deploy/merge-env.sh"
+    chmod +x "$APP_DIR/deploy/validate-env.sh"
+    
+    # Run the merge script
+    if "$APP_DIR/deploy/merge-env.sh"; then
+        echo "[$(date)] ✓ Environment configuration merged successfully"
+        
+        # Create symlink from API directory to shared .env.production
+        ln -sf "$SHARED_DIR/.env.production" "$APP_DIR/packages/api/.env.production"
+        echo "[$(date)] ✓ Symlink created: $APP_DIR/packages/api/.env.production -> $SHARED_DIR/.env.production"
+    else
+        echo "[$(date)] ✗ ERROR: Failed to merge environment configuration"
+        exit 1
+    fi
 else
-    echo "[$(date)] ⚠ Warning: Shared .env file not found at $SHARED_DIR/.env"
+    echo "[$(date)] ✗ ERROR: merge-env.sh not found in deployment artifact"
+    exit 1
 fi
 
 # Native dependencies are already compiled for ARM64 during build

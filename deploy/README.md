@@ -59,7 +59,7 @@ The application expects a `.env.production` file at `/opt/img-manager/shared/.en
 
 ```bash
 NODE_ENV=production
-PORT=3000
+APP_PORT=3000
 APP_NAME=img-manager
 DOMAIN_NAME=your-domain.com
 DB_HOST=localhost
