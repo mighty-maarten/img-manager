@@ -21,20 +21,17 @@ phases:
       - npm run build --workspace=packages/api
       - echo "Build completed on $(date)"
       - echo "Generating .env.build file..."
-      - |
-        cat > packages/api/.env.build << EOF
-        NODE_ENV=${NODE_ENV}
-        APP_PORT=3000
-        APP_ALLOW_DATABASE_SETUP=${APP_ALLOW_DATABASE_SETUP}
-        APP_ALLOWED_ORIGINS=${APP_ALLOWED_ORIGINS}
-        APP_IS_CLOUD=${APP_IS_CLOUD}
-        APP_CLOUDWATCH_LOG_GROUP_NAME=${APP_CLOUDWATCH_LOG_GROUP_NAME}
-        APP_SNS_ERROR_TOPIC_ARN=${APP_SNS_ERROR_TOPIC_ARN}
-        APP_ASSETS_BUCKET_NAME=${APP_ASSETS_BUCKET_NAME}
-        APP_LOCAL_STORAGE_PATH=/opt/img-manager/shared/storage
-        AWS_REGION=${AWS_REGION}
-        DOMAIN_NAME=${DOMAIN_NAME}
-        EOF
+      - echo "NODE_ENV=${NODE_ENV}" > packages/api/.env.build
+      - echo "APP_PORT=3000" >> packages/api/.env.build
+      - echo "APP_ALLOW_DATABASE_SETUP=${APP_ALLOW_DATABASE_SETUP}" >> packages/api/.env.build
+      - echo "APP_ALLOWED_ORIGINS=${APP_ALLOWED_ORIGINS}" >> packages/api/.env.build
+      - echo "APP_IS_CLOUD=${APP_IS_CLOUD}" >> packages/api/.env.build
+      - echo "APP_CLOUDWATCH_LOG_GROUP_NAME=${APP_CLOUDWATCH_LOG_GROUP_NAME}" >> packages/api/.env.build
+      - echo "APP_SNS_ERROR_TOPIC_ARN=${APP_SNS_ERROR_TOPIC_ARN}" >> packages/api/.env.build
+      - echo "APP_ASSETS_BUCKET_NAME=${APP_ASSETS_BUCKET_NAME}" >> packages/api/.env.build
+      - echo "APP_LOCAL_STORAGE_PATH=/opt/img-manager/shared/storage" >> packages/api/.env.build
+      - echo "AWS_REGION=${AWS_REGION}" >> packages/api/.env.build
+      - echo "DOMAIN_NAME=${DOMAIN_NAME}" >> packages/api/.env.build
       - echo ".env.build file generated"
       - cat packages/api/.env.build
       - echo "Build artifacts prepared"
