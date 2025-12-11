@@ -132,7 +132,7 @@ const deploymentStack = new DeploymentStack(
         requireManualApproval: deployApprovalNeeded,
         environmentConfig: {
             domainName: domainName,
-            allowDatabaseSetup: allowDatabaseSetup,
+            allowDatabaseSetup: String(allowDatabaseSetup),
             nodeEnv: nodeEnvironment,
             allowedOrigins: allowedOrigins.join(','),
             isCloud: true,
