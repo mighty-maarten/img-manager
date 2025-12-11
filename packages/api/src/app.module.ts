@@ -49,7 +49,10 @@ import { join } from 'path';
         TypeOrmModule.forFeature([SiteSettingsEntity]),
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '../../..', 'client/dist'),
-            exclude: ['/api*', '/status'],
+            exclude: ['/api/{*path}', '/status'],
+            serveStaticOptions: {
+                fallthrough: false,
+            },
         }),
         // Routes
         RouterModule.register(routes),
