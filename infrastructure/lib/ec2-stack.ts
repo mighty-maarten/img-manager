@@ -25,6 +25,7 @@ import {
     Role,
     ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
+import * as backup from 'aws-cdk-lib/aws-backup';
 import { identifyResource } from './config-util';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
@@ -478,6 +479,73 @@ export class Ec2Stack extends cdk.Stack {
             new cdk.CfnOutput(this, 'DomainName', {
                 value: props.domainName,
                 description: 'Domain name',
+            });
+
+            // ============================================
+            // AWS BACKUP CONFIGURATION
+            // ============================================
+            // Daily backups at 2:00 AM UTC with 30-day retention
+            // ============================================
+
+            // Create Backup Vault
+            const backupVault = new backup.BackupVault(
+                this,
+                identifyResource(resourcePrefix, 'backup-vault'),
+                {
+                    backupVaultName: identifyResource(resourcePrefix, 'backup-vault'),
+                    removalPolicy: cdk.RemovalPolicy.RETAIN,
+                },
+            );
+
+            // Create Backup Plan with daily rule
+            const backupPlan = new backup.BackupPlan(
+                this,
+                identifyResource(resourcePrefix, 'backup-plan'),
+                {
+                    backupPlanName: identifyResource(resourcePrefix, 'ec2-daily-backup'),
+                    backupPlanRules: [
+                        new backup.BackupPlanRule({
+                            ruleName: 'DailyBackup',
+                            backupVault: backupVault,
+                            // Schedule: Daily at 2:00 AM UTC
+                            scheduleExpression: cdk.aws_events.Schedule.cron({
+                                minute: '0',
+                                hour: '2',
+                                day: '*',
+                                month: '*',
+                                year: '*',
+                            }),
+                            // Start backup within 1 hour of scheduled time
+                            startWindow: Duration.hours(1),
+                            // Complete backup within 2 hours
+                            completionWindow: Duration.hours(2),
+                            // Retain backups for 30 days
+                            deleteAfter: Duration.days(30),
+                        }),
+                    ],
+                },
+            );
+
+            // Add EC2 instance to backup plan using tag selection
+            backupPlan.addSelection(
+                identifyResource(resourcePrefix, 'backup-selection'),
+                {
+                    resources: [
+                        backup.BackupResource.fromEc2Instance(this.instance),
+                    ],
+                    allowRestores: true,
+                },
+            );
+
+            // Output backup vault ARN
+            new cdk.CfnOutput(this, 'BackupVaultArn', {
+                value: backupVault.backupVaultArn,
+                description: 'AWS Backup Vault ARN',
+            });
+
+            new cdk.CfnOutput(this, 'BackupPlanId', {
+                value: backupPlan.backupPlanId,
+                description: 'AWS Backup Plan ID',
             });
         }
     }
