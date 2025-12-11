@@ -25,7 +25,7 @@ const certificateArn =
     'arn:aws:acm:us-east-1:964213726654:certificate/e5689f63-802c-453e-bce6-965416e8642e';
 const hostedZoneName = 'img-manager.mighty.be';
 const domainNames = ['img-manager.mighty.be', 'www.img-manager.mighty.be'];
-const apiUrl = 'https://api.img-manager.mighty.be';
+const apiUrl = 'https://img-manager.mighty.be/api';
 const autoDestroyS3 = false;
 const deployApprovalNeeded = true;
 
