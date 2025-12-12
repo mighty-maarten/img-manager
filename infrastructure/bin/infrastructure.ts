@@ -21,7 +21,6 @@ const region = 'eu-west-1';
 const repo = 'img-manager';
 const repoOwner = 'mighty-maarten';
 const githubTokenSecretId = '/cicd/github_token';
-const buildAlertEmail = 'maarten.thoelen@mighty.be';
 const errorAlertEmail = 'maarten.thoelen@mighty.be';
 
 // VARIABLE PARAMETERS //
@@ -42,7 +41,7 @@ const deployApprovalNeeded = true;
 const secretsWildcardArn = `arn:aws:secretsmanager:${region}:${accountId}:secret:${resourcePrefix}-*`;
 
 const allowDatabaseSetup = true;
-const allowedOrigins = ['https://img-manager.mighty.be', 'https://d2soqqbdnq7pgs.cloudfront.net/'];
+const allowedOrigins = ['https://img-manager.mighty.be'];
 
 const app = new cdk.App();
 
@@ -97,6 +96,7 @@ const snsStack = new SnsStack(app, identifyResource(resourcePrefix, 'sns-stack')
     },
 });
 
+// EC2 STACK
 const ec2Stack = new Ec2Stack(app, identifyResource(resourcePrefix, 'ec2-stack'), {
     resourcePrefix: resourcePrefix,
     vpc: vpcStack.vpc,
@@ -117,7 +117,7 @@ const ec2Stack = new Ec2Stack(app, identifyResource(resourcePrefix, 'ec2-stack')
     },
 });
 
-// DEPLOYMENT STACK (CodePipeline + CodeDeploy) //
+// DEPLOYMENT STACK
 const deploymentStack = new DeploymentStack(
     app,
     identifyResource(resourcePrefix, 'deployment-stack'),
@@ -132,7 +132,7 @@ const deploymentStack = new DeploymentStack(
         requireManualApproval: deployApprovalNeeded,
         environmentConfig: {
             domainName: domainName,
-            allowDatabaseSetup: String(allowDatabaseSetup),
+            allowDatabaseSetup: allowDatabaseSetup,
             nodeEnv: nodeEnvironment,
             allowedOrigins: allowedOrigins.join(','),
             isCloud: true,

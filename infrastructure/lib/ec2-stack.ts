@@ -26,6 +26,9 @@ import {
     ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import * as backup from 'aws-cdk-lib/aws-backup';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as events_targets from 'aws-cdk-lib/aws-events-targets';
+import * as sns from 'aws-cdk-lib/aws-sns';
 import { identifyResource } from './config-util';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
@@ -547,6 +550,52 @@ export class Ec2Stack extends cdk.Stack {
                 value: backupPlan.backupPlanId,
                 description: 'AWS Backup Plan ID',
             });
+
+            // ============================================
+            // BACKUP FAILURE NOTIFICATIONS
+            // ============================================
+            // EventBridge rule to notify on backup job failures
+            // ============================================
+
+            // Import existing SNS topic for error notifications
+            const errorSnsTopic = sns.Topic.fromTopicArn(
+                this,
+                identifyResource(resourcePrefix, 'error-sns-topic'),
+                props.errorSNSTopicARN,
+            );
+
+            // EventBridge rule for backup job failures
+            new events.Rule(
+                this,
+                identifyResource(resourcePrefix, 'backup-failure-rule'),
+                {
+                    ruleName: identifyResource(resourcePrefix, 'backup-failure-alert'),
+                    description: 'Notify on AWS Backup job failures',
+                    eventPattern: {
+                        source: ['aws.backup'],
+                        detailType: ['Backup Job State Change'],
+                        detail: {
+                            state: ['FAILED', 'ABORTED', 'EXPIRED'],
+                        },
+                    },
+                    targets: [
+                        new events_targets.SnsTopic(errorSnsTopic, {
+                            message: events.RuleTargetInput.fromText(
+                                `AWS Backup Job Failed!\n\n` +
+                                `Backup Job ID: ${events.EventField.fromPath('$.detail.backupJobId')}\n` +
+                                `Resource ARN: ${events.EventField.fromPath('$.detail.resourceArn')}\n` +
+                                `Resource Type: ${events.EventField.fromPath('$.detail.resourceType')}\n` +
+                                `State: ${events.EventField.fromPath('$.detail.state')}\n` +
+                                `Status Message: ${events.EventField.fromPath('$.detail.statusMessage')}\n` +
+                                `Backup Vault: ${events.EventField.fromPath('$.detail.backupVaultName')}\n` +
+                                `Account: ${events.EventField.fromPath('$.account')}\n` +
+                                `Region: ${events.EventField.fromPath('$.region')}\n` +
+                                `Time: ${events.EventField.fromPath('$.time')}`
+                            ),
+                        }),
+                    ],
+                },
+            );
         }
     }
 }
