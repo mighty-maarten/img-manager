@@ -2,8 +2,8 @@ module.exports = {
     apps: [
         {
             name: 'img-manager-api',
-            script: 'packages/api/dist/src/main.js',
-            cwd: '/opt/img-manager/current',
+            script: 'dist/src/main.js',
+            cwd: '/opt/img-manager/current/packages/api',
             instances: 1,
             exec_mode: 'fork',
             autorestart: true,
