@@ -5,6 +5,7 @@ import { AppConfigService } from '../config/app-config.service';
 import { IFileService } from '../storage/types';
 import { ProcessedImage } from '../database/entities/processed-image.entity';
 import {
+    CollectionReferenceContract,
     FakeProcessImagesResultContract,
     ProcessedImageContract,
     SyncProcessedImagesResultContract,
@@ -108,6 +109,7 @@ export class ProcessedImagesService {
         const queryBuilder = this.processedImageRepository
             .createQueryBuilder('processedImage')
             .leftJoinAndSelect('processedImage.processingRun', 'processingRun')
+            .leftJoinAndSelect('processingRun.collection', 'collection')
             .leftJoinAndSelect('processingRun.label', 'label')
             .leftJoinAndSelect('processedImage.sourceImage', 'sourceImage');
 
@@ -191,7 +193,18 @@ export class ProcessedImagesService {
                     image.key,
                     expirationSeconds,
                 );
-                return new ProcessedImageContract(image, url);
+
+                // Extract collection from processing run
+                const collections = image.processingRun?.collection
+                    ? [
+                          new CollectionReferenceContract(
+                              image.processingRun.collection.id,
+                              image.processingRun.collection.url,
+                          ),
+                      ]
+                    : undefined;
+
+                return new ProcessedImageContract(image, url, collections);
             }),
         );
 
@@ -201,7 +214,7 @@ export class ProcessedImagesService {
     async getProcessedImageById(id: string): Promise<ProcessedImageContract> {
         const processedImage = await this.processedImageRepository.findOne({
             where: { id },
-            relations: ['processingRun', 'sourceImage'],
+            relations: ['processingRun', 'processingRun.collection', 'sourceImage'],
         });
 
         if (!processedImage) {
@@ -216,7 +229,17 @@ export class ProcessedImagesService {
             expirationSeconds,
         );
 
-        return new ProcessedImageContract(processedImage, url);
+        // Extract collection from processing run
+        const collections = processedImage.processingRun?.collection
+            ? [
+                  new CollectionReferenceContract(
+                      processedImage.processingRun.collection.id,
+                      processedImage.processingRun.collection.url,
+                  ),
+              ]
+            : undefined;
+
+        return new ProcessedImageContract(processedImage, url, collections);
     }
 
     async updateProcessedImageHidden(

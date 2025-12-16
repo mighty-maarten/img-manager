@@ -2,6 +2,19 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 import { ProcessedImage } from '../database/entities/processed-image.entity';
 
+export class CollectionReferenceContract {
+    @ApiProperty({ description: 'Collection ID' })
+    public id: string;
+
+    @ApiProperty({ description: 'Collection URL' })
+    public url: string;
+
+    constructor(id: string, url: string) {
+        this.id = id;
+        this.url = url;
+    }
+}
+
 export class FakeProcessImagesContract {
     @ApiProperty({ description: 'Label name for processing images' })
     @IsString()
@@ -53,7 +66,18 @@ export class ProcessedImageContract {
     @ApiProperty({ description: 'Last update timestamp' })
     public lastUpdatedOn: Date;
 
-    constructor(processedImage: ProcessedImage, url: string) {
+    @ApiProperty({
+        type: [CollectionReferenceContract],
+        description: 'Collections this image belongs to (via processing runs)',
+        required: false,
+    })
+    public collections?: CollectionReferenceContract[];
+
+    constructor(
+        processedImage: ProcessedImage,
+        url: string,
+        collections?: CollectionReferenceContract[],
+    ) {
         this.id = processedImage.id;
         this.filename = processedImage.filename;
         this.bucket = processedImage.bucket;
@@ -64,6 +88,7 @@ export class ProcessedImageContract {
         this.score = processedImage.score;
         this.createdOn = processedImage.createdOn;
         this.lastUpdatedOn = processedImage.lastUpdatedOn;
+        this.collections = collections;
     }
 }
 

@@ -1,5 +1,10 @@
 import type { SortMeta } from './collection';
 
+export type CollectionReference = {
+    id: string;
+    url: string;
+};
+
 export type ProcessedImage = {
     id: string;
     filename: string;
@@ -11,6 +16,7 @@ export type ProcessedImage = {
     score?: number;
     createdOn: Date;
     lastUpdatedOn: Date;
+    collections?: CollectionReference[];
 };
 
 export type GetProcessedImagesQuery = {

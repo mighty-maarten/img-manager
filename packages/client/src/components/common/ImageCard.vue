@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { RouterLink } from 'vue-router';
 import { DateUtil } from '@/utils/date';
+
+interface CollectionRef {
+    id: string;
+    url: string;
+}
 
 interface ImageData {
     id: string;
@@ -10,6 +16,7 @@ interface ImageData {
     width?: number;
     height?: number;
     fileSize?: number;
+    collections?: CollectionRef[];
     [key: string]: any;
 }
 
@@ -54,6 +61,16 @@ const compactMetadata = computed(() => {
     return parts.length > 0 ? parts.join(' • ') : null;
 });
 
+const firstCollection = computed(() => {
+    return props.image.collections?.[0] ?? null;
+});
+
+const additionalCollectionsCount = computed(() => {
+    const count = (props.image.collections?.length ?? 0) - 1;
+    return count > 0 ? count : 0;
+});
+
+
 function handleClick() {
     if (props.clickable) {
         emit('click', props.image.id);
@@ -79,7 +96,17 @@ function handleClick() {
         </div>
         <div class="image-info">
             <p class="image-filename" :title="image.filename">{{ image.filename }}</p>
-            <p v-if="formattedDate" class="image-date">{{ formattedDate }}</p>
+            <div v-if="formattedDate || firstCollection" class="image-date-row">
+                <span v-if="formattedDate" class="image-date">{{ formattedDate }}</span>
+                <RouterLink
+                    v-if="firstCollection"
+                    :to="{ name: 'common_collection_detail', params: { collectionId: firstCollection.id } }"
+                    class="collection-link"
+                    @click.stop
+                >
+                    col<template v-if="additionalCollectionsCount > 0"> +{{ additionalCollectionsCount }}</template>
+                </RouterLink>
+            </div>
             <p v-if="compactMetadata" class="image-metadata">{{ compactMetadata }}</p>
             <slot name="footer" />
         </div>
@@ -163,10 +190,27 @@ function handleClick() {
     margin: 0;
 }
 
-.image-date {
+.image-date-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     font-size: 0.75rem;
-    color: var(--p-text-muted-color);
     margin: 0;
+}
+
+.image-date {
+    color: var(--p-text-muted-color);
+}
+
+.collection-link {
+    color: var(--p-primary-color);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .image-metadata {
