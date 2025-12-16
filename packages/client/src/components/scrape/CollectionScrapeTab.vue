@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCollectionsStore } from '@/stores/collections';
 import { useToastMessages } from '@/composables/toast';
-import { Button, Select, Card, Chip } from 'primevue';
+import { Button, Select } from 'primevue';
 import { useI18n } from 'vue-i18n';
 import type { ScrapeResult } from '@/api/services/types/collection';
 import ImageGrid from '@/components/common/ImageGrid.vue';
@@ -126,54 +126,6 @@ function handleImageClick(imageId: string) {
         </form>
 
         <div v-if="showResults && scrapeResult" class="results-section">
-            <div
-                v-if="
-                    scrapeResult.tags?.length ||
-                    scrapeResult.categories?.length ||
-                    scrapeResult.models?.length
-                "
-                class="metadata-section"
-            >
-                <Card class="metadata-card">
-                    <template #content>
-                        <div class="metadata-groups">
-                            <div v-if="scrapeResult.models?.length" class="metadata-group">
-                                <h3 class="metadata-title">Models</h3>
-                                <div class="chip-container">
-                                    <Chip
-                                        v-for="model in scrapeResult.models"
-                                        :key="model"
-                                        :label="model"
-                                    />
-                                </div>
-                            </div>
-
-                            <div v-if="scrapeResult.categories?.length" class="metadata-group">
-                                <h3 class="metadata-title">Categories</h3>
-                                <div class="chip-container">
-                                    <Chip
-                                        v-for="category in scrapeResult.categories"
-                                        :key="category"
-                                        :label="category"
-                                    />
-                                </div>
-                            </div>
-
-                            <div v-if="scrapeResult.tags?.length" class="metadata-group">
-                                <h3 class="metadata-title">Tags</h3>
-                                <div class="chip-container">
-                                    <Chip
-                                        v-for="tag in scrapeResult.tags"
-                                        :key="tag"
-                                        :label="tag"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </Card>
-            </div>
-
             <div class="results-summary">
                 <div class="results-title">
                     <h2>Scrape Results</h2>
@@ -258,39 +210,6 @@ function handleImageClick(imageId: string) {
         color: var(--p-text-muted-color);
         margin: 0;
     }
-}
-
-.metadata-section {
-    width: 100%;
-}
-
-.metadata-card {
-    width: 100%;
-}
-
-.metadata-groups {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.metadata-group {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.metadata-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--p-text-color);
-}
-
-.chip-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
 }
 
 .errors-section {

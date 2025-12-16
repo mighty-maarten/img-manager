@@ -3,7 +3,7 @@ import { onMounted, ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCollectionsStore } from '@/stores/collections';
 import { useToastMessages } from '@/composables/toast';
-import { Button, Chip, TabView, TabPanel } from 'primevue';
+import { Button, Card, Chip, TabView, TabPanel } from 'primevue';
 import { useI18n } from 'vue-i18n';
 import { Icons } from '@/types/icons';
 import type { Collection } from '@/api/services/types/collection';
@@ -46,6 +46,11 @@ const isScraped = computed(() => {
 const hasProcessingRuns = computed(() => {
     return !!collection.value?.processingRuns && collection.value.processingRuns.length > 0;
 });
+
+const hasMetadata = computed(() => {
+    const scrape = collection.value?.scrape;
+    return scrape?.tags?.length || scrape?.categories?.length || scrape?.models?.length;
+});
 </script>
 
 <template>
@@ -71,6 +76,45 @@ const hasProcessingRuns = computed(() => {
                         />
                     </div>
                 </div>
+            </div>
+
+            <div v-if="collection?.scrape && hasMetadata" class="metadata-section">
+                <Card class="metadata-card">
+                    <template #content>
+                        <div class="metadata-groups">
+                            <div v-if="collection.scrape.models?.length" class="metadata-group">
+                                <h3 class="metadata-title">Models</h3>
+                                <div class="chip-container">
+                                    <Chip
+                                        v-for="model in collection.scrape.models"
+                                        :key="model"
+                                        :label="model"
+                                    />
+                                </div>
+                            </div>
+                            <div v-if="collection.scrape.categories?.length" class="metadata-group">
+                                <h3 class="metadata-title">Categories</h3>
+                                <div class="chip-container">
+                                    <Chip
+                                        v-for="category in collection.scrape.categories"
+                                        :key="category"
+                                        :label="category"
+                                    />
+                                </div>
+                            </div>
+                            <div v-if="collection.scrape.tags?.length" class="metadata-group">
+                                <h3 class="metadata-title">Tags</h3>
+                                <div class="chip-container">
+                                    <Chip
+                                        v-for="tag in collection.scrape.tags"
+                                        :key="tag"
+                                        :label="tag"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
             </div>
 
             <div v-if="collection" class="tabs-container">
@@ -126,5 +170,38 @@ const hasProcessingRuns = computed(() => {
 .not-scraped-chip {
     background-color: var(--p-surface-300);
     color: var(--p-text-color);
+}
+
+.metadata-section {
+    width: 100%;
+}
+
+.metadata-card {
+    width: 100%;
+}
+
+.metadata-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.metadata-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.metadata-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+}
+
+.chip-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 </style>
