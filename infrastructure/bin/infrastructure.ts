@@ -5,8 +5,6 @@ import { InfraEnvironment } from '../lib/infra-environment';
 import { AccessDefinition } from '../lib/access-definition';
 import { SharedStack } from '../lib/shared.stack';
 import { VpcStack } from '../lib/vpc-stack';
-import { RdsStack } from '../lib/rds-stack';
-import { InstanceClass, InstanceSize, InstanceType, SubnetType } from 'aws-cdk-lib/aws-ec2';
 import { SnsStack } from '../lib/sns-stack';
 import { Ec2Stack } from '../lib/ec2-stack';
 import { DeploymentStack } from '../lib/deployment-stack';
@@ -27,10 +25,6 @@ const errorAlertEmail = 'maarten.thoelen@mighty.be';
 const infraEnvironment = InfraEnvironment.PROD;
 const resourcePrefix = `img-manager-${infraEnvironment}`;
 const repoBranch = 'main';
-const databaseInstanceType = InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO);
-const databaseSubnetSelection = { subnetType: SubnetType.PRIVATE_WITH_EGRESS };
-const databaseDeletionProtection = true;
-const databaseName = `img_manager_${infraEnvironment}`;
 const autoDestroyS3 = false;
 const availabilityZones = ['eu-west-1a', 'eu-west-1b'];
 const amountOfNATGateways = 0;
@@ -58,20 +52,6 @@ const vpcStack = new VpcStack(app, identifyResource(resourcePrefix, 'vpc-stack')
         account: accountId,
         region: region,
     },
-});
-
-// RDS DATABASE STACK //
-const rdsStack = new RdsStack(app, identifyResource(resourcePrefix, 'rds-stack'), {
-    resourcePrefix: resourcePrefix,
-    env: {
-        account: accountId,
-        region: region,
-    },
-    vpc: vpcStack.vpc,
-    databaseName: databaseName,
-    instanceType: databaseInstanceType,
-    subnetSelection: databaseSubnetSelection,
-    deletionProtection: databaseDeletionProtection,
 });
 
 // SHARED RESOURCES STACK //

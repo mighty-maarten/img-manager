@@ -222,7 +222,6 @@ infrastructure/
 │   ├── deployment-stack.ts  # CI/CD pipeline (CodePipeline, CodeBuild, CodeDeploy)
 │   ├── ec2-stack.ts         # EC2 instance, security groups, IAM roles
 │   ├── vpc-stack.ts         # VPC, subnets, NAT gateways
-│   ├── rds-stack.ts         # RDS PostgreSQL (optional)
 │   ├── shared.stack.ts      # S3 buckets, CloudWatch logs
 │   ├── sns-stack.ts         # SNS topics for notifications
 │   └── ...
