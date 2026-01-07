@@ -919,7 +919,6 @@ log "Starting application directory structure setup..."
 log "Creating application directories..."
 mkdir -p /opt/img-manager/current
 mkdir -p /opt/img-manager/shared
-mkdir -p /opt/img-manager/releases
 mkdir -p /var/log/img-manager
 
 log "✓ Application directories created"
@@ -942,7 +941,7 @@ log "✓ Directory permissions set (755)"
 log "Verifying directory structure..."
 MISSING_DIRS=""
 
-for dir in /opt/img-manager/current /opt/img-manager/shared /opt/img-manager/releases /var/log/img-manager; do
+for dir in /opt/img-manager/current /opt/img-manager/shared /var/log/img-manager; do
     if [ -d "$dir" ]; then
         log "  ✓ $dir exists"
     else
@@ -1292,7 +1291,6 @@ Directory Structure:
 -------------------
 ✓ /opt/img-manager/current (deployment target)
 ✓ /opt/img-manager/shared (persistent data)
-✓ /opt/img-manager/releases (deployment history)
 ✓ /var/log/img-manager (application logs)
 
 Configuration Files:

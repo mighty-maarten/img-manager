@@ -7,13 +7,11 @@ import checker from 'vite-plugin-checker';
 
 // https://vite.dev/config/
 // Environment variables:
-// - Vite automatically loads .env files from the project root
+// - Vite automatically loads .env files from this package directory
 // - Only variables prefixed with VITE_ are exposed to the client
 // - Variables are statically replaced at build time
 // - See env.d.ts for type definitions
-// - envDir is set to load from monorepo root for shared configuration
 export default defineConfig({
-    envDir: '../..',
     plugins: [
         vue(),
         vueDevTools(),
