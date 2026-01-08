@@ -13,7 +13,14 @@
         "table": {
             "name": "Name",
             "createdOn": "Created On",
-            "actions": "Actions"
+            "actions": "Actions",
+            "sync": "Sync"
+        },
+        "sync": {
+            "tooltip": "Sync processed images for this label",
+            "success": "{processed} images synced, {skipped} skipped",
+            "error": "{processed} images synced, {skipped} skipped, {failed} failed",
+            "errorGeneric": "Failed to sync images for this label"
         },
         "add": {
             "title": "Create Label",

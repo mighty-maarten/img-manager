@@ -9,7 +9,14 @@ import {
     UseGuards,
     BadRequestException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+    ApiBearerAuth,
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiParam,
+    ApiDeprecated,
+} from '@nestjs/swagger';
 import { ProcessedImagesService } from './processed-images.service';
 import {
     FakeProcessImagesContract,
@@ -141,8 +148,59 @@ export class ProcessedImagesController {
         return this.processedImagesService.updateProcessedImageScore(id, contract);
     }
 
+    /**
+     * @deprecated Use syncProcessedImagesByLabel instead. This endpoint will be removed in a future version.
+     */
     @Post('sync')
+    @ApiDeprecated()
+    @ApiOperation({
+        summary: 'Sync all processed images (deprecated)',
+        description:
+            'Scans the entire /processed folder in S3 and syncs all processed images to the database. ' +
+            'This endpoint is deprecated. Use POST /api/processed-images/sync/:labelId instead to sync images for a specific label.',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Sync completed successfully',
+        type: SyncProcessedImagesResultContract,
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Unauthorized',
+    })
     async syncProcessedImages(): Promise<SyncProcessedImagesResultContract> {
         return this.processedImagesService.syncProcessedImagesFromStorage();
+    }
+
+    @Post('sync/:labelId')
+    @ApiOperation({
+        summary: 'Sync processed images for a specific label',
+        description:
+            'Scans the /processed/<label_name> folder in S3 and syncs processed images for the specified label to the database. ' +
+            'This operation only processes images in the label-specific folder, making it faster and more efficient than the global sync.',
+    })
+    @ApiParam({
+        name: 'labelId',
+        description: 'The UUID of the label to sync processed images for',
+        type: String,
+        example: '123e4567-e89b-12d3-a456-426614174000',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Sync completed successfully',
+        type: SyncProcessedImagesResultContract,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Label not found',
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Unauthorized',
+    })
+    async syncProcessedImagesByLabel(
+        @Param('labelId') labelId: string,
+    ): Promise<SyncProcessedImagesResultContract> {
+        return this.processedImagesService.syncProcessedImagesByLabel(labelId);
     }
 }

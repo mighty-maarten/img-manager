@@ -4,44 +4,16 @@ import { useRouter } from 'vue-router';
 import { Icons } from '@/types/icons';
 import { Button, Menu } from 'primevue';
 import { useAuthStore } from '@/stores/auth';
-import { useProcessedImagesStore } from '@/stores/processed-images.ts';
 import { useI18n } from 'vue-i18n';
 import type { MenuItem } from 'primevue/menuitem';
-import { useToastMessages } from '@/composables/toast';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const processedImagesStore = useProcessedImagesStore();
 const { t } = useI18n();
-const { successToast, errorToast } = useToastMessages();
 
 const settingsMenu = ref<InstanceType<typeof Menu>>();
 
 const menuItems = ref<MenuItem[]>([
-    {
-        label: t('sync.title'),
-        icon: Icons.refresh,
-        command: async () => {
-            const result = await processedImagesStore.syncProcessedImages();
-            if (result) {
-                if (result.errors.length > 0) {
-                    errorToast(t('sync.title'), t('sync.errorMessage', {
-                        processed: result.processed,
-                        skipped: result.skipped,
-                        failed: result.failed
-                    }));
-                } else {
-                    successToast(t('sync.title'), t('sync.successMessage', {
-                        processed: result.processed,
-                        skipped: result.skipped
-                    }));
-                }
-            }
-        },
-    },
-    {
-        separator: true,
-    },
     {
         label: t('auth.logout'),
         icon: Icons.logout,

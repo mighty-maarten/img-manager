@@ -5,8 +5,15 @@ import type { PagedResult } from './types/collection';
 export class ProcessedImageService {
     private static readonly BASE_PATH = '/processed-images';
 
+    /**
+     * @deprecated Use syncByLabel instead. This method will be removed in a future version.
+     */
     public static async syncProcessedImages(): Promise<SyncProcessedImagesResult> {
         return HttpClient.post<Record<string, never>, SyncProcessedImagesResult>(`${this.BASE_PATH}/sync`, {});
+    }
+
+    public static async syncByLabel(labelId: string): Promise<SyncProcessedImagesResult> {
+        return HttpClient.post<Record<string, never>, SyncProcessedImagesResult>(`${this.BASE_PATH}/sync/${labelId}`, {});
     }
 
     public static async getProcessedImages(runId?:string,query?: GetProcessedImagesQuery): Promise<PagedResult<ProcessedImage>> {

@@ -14,7 +14,7 @@ const labelsStore = useLabelsStore();
 const { t } = useI18n();
 const router = useRouter();
 const { confirmDelete } = useConfirmDialog();
-const { successToast } = useToastMessages();
+const { successToast, errorToast } = useToastMessages();
 
 onMounted(async () => {
     await labelsStore.fetchLabels();
@@ -33,6 +33,37 @@ async function handleDelete(label: Label) {
             successToast(t('labels.delete.success'), '');
         },
     );
+}
+
+async function handleSync(label: Label) {
+    try {
+        const result = await labelsStore.syncProcessedImagesByLabel(label.id);
+        
+        if (result.failed > 0 || result.errors.length > 0) {
+            errorToast(
+                t('labels.sync.error', { 
+                    processed: result.processed, 
+                    skipped: result.skipped, 
+                    failed: result.failed 
+                }),
+                result.errors.slice(0, 3).join(', ')
+            );
+        } else {
+            successToast(
+                t('labels.sync.success', { 
+                    processed: result.processed, 
+                    skipped: result.skipped 
+                }),
+                ''
+            );
+        }
+    } catch (error) {
+        errorToast(t('labels.sync.errorGeneric'), '');
+    }
+}
+
+function isSyncing(labelId: string): boolean {
+    return labelsStore.syncingLabelIds.has(labelId);
 }
 </script>
 
@@ -59,6 +90,20 @@ async function handleDelete(label: Label) {
                 <Column field="createdOn" :header="t('labels.table.createdOn')" sortable>
                     <template #body="{ data }">
                         {{ DateUtil.formatDateTime(data.createdOn) }}
+                    </template>
+                </Column>
+                <Column :header="t('labels.table.sync')">
+                    <template #body="{ data }">
+                        <Button
+                            :icon="Icons.refresh"
+                            :loading="isSyncing(data.id)"
+                            :disabled="isSyncing(data.id)"
+                            severity="secondary"
+                            text
+                            rounded
+                            v-tooltip.top="t('labels.sync.tooltip')"
+                            @click="handleSync(data)"
+                        />
                     </template>
                 </Column>
                 <Column :header="t('labels.table.actions')">

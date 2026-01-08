@@ -77,7 +77,8 @@ export class ProcessedImagesService {
 
                     // Create new filename with pattern: <filename>---processed@<labelname>_<incremental_number>.webp
                     const newFilename = `${originalFilename}---processed@${labelName}_${processedCount + 1}.webp`;
-                    const newKey = `${processedPrefix}/${newFilename}`;
+                    // Store in label-specific folder: processed/<label_name>/<filename>
+                    const newKey = `${processedPrefix}/${labelName}/${newFilename}`;
 
                     // Upload to processed folder
                     await this.fileService.uploadFile(bucketName, newKey, buffer);
@@ -320,6 +321,230 @@ export class ProcessedImagesService {
         return new ProcessedImageContract(processedImage, url);
     }
 
+    async syncProcessedImagesByLabel(labelId: string): Promise<SyncProcessedImagesResultContract> {
+        // Fetch label from database to get label name
+        const label = await this.labelRepository.findOne({
+            where: { id: labelId },
+        });
+
+        if (!label) {
+            throw new NotFoundException(`Label with id '${labelId}' not found`);
+        }
+
+        const bucketName = this.configService.assetsBucketName;
+        const prefix = `processed/${label.name}/`;
+
+        this.logger.log(`Starting sync of processed images for label '${label.name}' from storage`);
+
+        // Scan S3 at path /processed/<label_name>/
+        let keys = await this.fileService.listObjects(bucketName, prefix);
+        this.logger.log(`Found ${keys.length} processed files in storage for label '${label.name}'`);
+
+        // Also check for old-format images in the root processed/ folder that match this label
+        const oldFormatPrefix = 'processed/';
+        const allProcessedKeys = await this.fileService.listObjects(bucketName, oldFormatPrefix);
+        
+        // Filter for old-format keys (no subdirectory) that match this label
+        const oldFormatPattern = /^processed\/(.+?)---processed@(.+?)_\d+\.webp$/;
+        const oldFormatKeys = allProcessedKeys.filter(key => {
+            const match = key.match(oldFormatPattern);
+            if (!match) return false;
+            const [, , labelName] = match;
+            return labelName === label.name;
+        });
+
+        if (oldFormatKeys.length > 0) {
+            this.logger.log(`Found ${oldFormatKeys.length} old-format images for label '${label.name}' that need migration`);
+            keys = [...keys, ...oldFormatKeys];
+        }
+
+        const errors: string[] = [];
+        let processedCount = 0;
+        let skippedCount = 0;
+        let failedCount = 0;
+        let migratedCount = 0;
+
+        // Regex to parse new format: processed/<label_name>/filename---processed@<label_name>_1.webp
+        const newFormatPattern = /^processed\/[^/]+\/(.+?)---processed@(.+?)_\d+\.webp$/;
+        // Regex to parse old format: processed/filename---processed@<label_name>_1.webp
+        const oldFormatPatternFull = /^processed\/(.+?)---processed@(.+?)_\d+\.webp$/;
+
+        for (const key of keys) {
+            try {
+                let originalFilename: string;
+                let labelName: string;
+                let isOldFormat = false;
+                let newKey = key;
+
+                // Try to match new format first
+                let match = key.match(newFormatPattern);
+                if (match) {
+                    [, originalFilename, labelName] = match;
+                } else {
+                    // Try old format
+                    match = key.match(oldFormatPatternFull);
+                    if (match) {
+                        [, originalFilename, labelName] = match;
+                        isOldFormat = true;
+                        // Calculate new key for migration
+                        const filename = key.split('/').pop()!;
+                        newKey = `processed/${label.name}/${filename}`;
+                    } else {
+                        const errorMsg = `Skipping malformed key: ${key}`;
+                        this.logger.warn(errorMsg);
+                        errors.push(errorMsg);
+                        skippedCount++;
+                        continue;
+                    }
+                }
+
+                // Verify the label name in the filename matches the label we're syncing
+                if (labelName !== label.name) {
+                    const errorMsg = `Skipping ${key}: label name in filename '${labelName}' does not match expected label '${label.name}'`;
+                    this.logger.warn(errorMsg);
+                    errors.push(errorMsg);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Find source Image by filename
+                const sourceImage = await this.imageRepository.findOne({
+                    where: { filename: originalFilename },
+                });
+
+                if (!sourceImage) {
+                    const errorMsg = `Skipping ${key}: source image with filename '${originalFilename}' not found`;
+                    this.logger.warn(errorMsg);
+                    errors.push(errorMsg);
+                    skippedCount++;
+                    continue;
+                }
+
+                // Find ScrapedImage to get collection
+                const scrapedImage = await this.scrapedImageRepository.findOne({
+                    where: { image: { id: sourceImage.id } },
+                    relations: ['scrape', 'scrape.collection'],
+                });
+
+                if (!scrapedImage || !scrapedImage.scrape) {
+                    const errorMsg = `Skipping ${key}: scraped image not found for source image '${originalFilename}'`;
+                    this.logger.warn(errorMsg);
+                    errors.push(errorMsg);
+                    skippedCount++;
+                    continue;
+                }
+
+                const collection = scrapedImage.scrape.collection;
+
+                // Find or create ProcessingRun for this collection-label pair
+                let processingRun = await this.processingRunRepository.findOne({
+                    where: {
+                        collection: { id: collection.id },
+                        label: { id: label.id },
+                    },
+                });
+
+                if (!processingRun) {
+                    processingRun = this.processingRunRepository.create({
+                        collection,
+                        label,
+                    });
+                    processingRun = await this.processingRunRepository.save(processingRun);
+                    this.logger.log(
+                        `Created new processing run for collection '${collection.id}' and label '${label.name}'`,
+                    );
+                }
+
+                // If this is an old-format image, migrate it
+                if (isOldFormat) {
+                    try {
+                        // Download the file
+                        const fileOutput = await this.fileService.downloadFile(bucketName, key);
+                        
+                        if (!fileOutput.Body) {
+                            throw new Error('Failed to download file for migration');
+                        }
+
+                        // Convert stream to buffer
+                        const chunks: Buffer[] = [];
+                        for await (const chunk of fileOutput.Body as any) {
+                            chunks.push(chunk);
+                        }
+                        const buffer = Buffer.concat(chunks);
+
+                        // Upload to new location
+                        await this.fileService.uploadFile(bucketName, newKey, buffer);
+                        this.logger.log(`Migrated ${key} to ${newKey}`);
+
+                        // Delete old file
+                        await this.fileService.deleteFile(bucketName, key);
+                        this.logger.log(`Deleted old file: ${key}`);
+
+                        migratedCount++;
+                    } catch (migrationError) {
+                        const errorMessage = migrationError instanceof Error ? migrationError.message : String(migrationError);
+                        const errorMsg = `Failed to migrate ${key}: ${errorMessage}`;
+                        this.logger.error(errorMsg, migrationError instanceof Error ? migrationError.stack : undefined);
+                        errors.push(errorMsg);
+                        // Continue with old key if migration fails
+                        newKey = key;
+                    }
+                }
+
+                // Check if ProcessedImage already exists with the old or new key
+                let processedImage = await this.processedImageRepository.findOne({
+                    where: [{ key: newKey }, { key }],
+                });
+
+                if (processedImage) {
+                    // Update existing processed image with new key
+                    processedImage.filename = newKey.split('/').pop()!;
+                    processedImage.bucket = bucketName;
+                    processedImage.key = newKey;
+                    processedImage.processingRun = processingRun;
+                    processedImage.sourceImage = sourceImage;
+                    await this.processedImageRepository.save(processedImage);
+                    this.logger.log(`Updated existing processed image: ${newKey}`);
+                } else {
+                    // Create new processed image
+                    processedImage = this.processedImageRepository.create({
+                        filename: newKey.split('/').pop()!,
+                        bucket: bucketName,
+                        key: newKey,
+                        processingRun,
+                        sourceImage,
+                    });
+                    await this.processedImageRepository.save(processedImage);
+                    this.logger.log(`Created new processed image: ${newKey}`);
+                }
+
+                processedCount++;
+            } catch (error) {
+                failedCount++;
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                const errorMsg = `Failed to process ${key}: ${errorMessage}`;
+                this.logger.error(errorMsg, error instanceof Error ? error.stack : undefined);
+                errors.push(errorMsg);
+            }
+        }
+
+        const logMessage = migratedCount > 0
+            ? `Sync complete for label '${label.name}': ${processedCount} processed, ${skippedCount} skipped, ${failedCount} failed, ${migratedCount} migrated`
+            : `Sync complete for label '${label.name}': ${processedCount} processed, ${skippedCount} skipped, ${failedCount} failed`;
+        
+        this.logger.log(logMessage);
+
+        return new SyncProcessedImagesResultContract(
+            processedCount,
+            skippedCount,
+            failedCount,
+            errors,
+        );
+    }
+
+    /**
+     * @deprecated Use syncProcessedImagesByLabel instead. This method will be removed in a future version.
+     */
     async syncProcessedImagesFromStorage(): Promise<SyncProcessedImagesResultContract> {
         const bucketName = this.configService.assetsBucketName;
         const prefix = 'processed/';

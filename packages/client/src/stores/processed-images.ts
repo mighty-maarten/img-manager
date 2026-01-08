@@ -4,13 +4,12 @@ import { ProcessedImageService } from '@/api/services/processed-image.ts';
 import type {
     ProcessedImage,
     GetProcessedImagesQuery,
-    SyncProcessedImagesResult
 } from '@/api/services/types/processed-image';
 import { ref } from 'vue';
 
 export const useProcessedImagesStore = defineStore('processed-images', () => {
     const { base, handleAction } = useStoreCreationUtils({
-        actions: ['fetchProcessedImages', 'fetchProcessedImage', 'syncProcessedImages', 'updateProcessedImageHidden', 'updateProcessedImageFlagged', 'updateProcessedImageScore'],
+        actions: ['fetchProcessedImages', 'fetchProcessedImage', 'updateProcessedImageHidden', 'updateProcessedImageFlagged', 'updateProcessedImageScore'],
     });
 
     const processedImages = ref<ProcessedImage[]>([]);
@@ -100,16 +99,6 @@ export const useProcessedImagesStore = defineStore('processed-images', () => {
                 cachedList.results[imgIndex] = updatedImage;
             }
         });
-    }
-
-    async function syncProcessedImages(): Promise<SyncProcessedImagesResult | null> {
-        let result: SyncProcessedImagesResult | null = null;
-        await handleAction('syncProcessedImages', undefined, async () => {
-            result = await ProcessedImageService.syncProcessedImages();
-            // Clear cache after sync as images may have changed
-            clearCache();
-        });
-        return result;
     }
 
     async function fetchProcessedImages(runId?: string, query?: GetProcessedImagesQuery): Promise<void> {
@@ -303,7 +292,6 @@ export const useProcessedImagesStore = defineStore('processed-images', () => {
         // Actions
         fetchProcessedImages,
         fetchProcessedImage,
-        syncProcessedImages,
         updateProcessedImageHidden,
         updateProcessedImageFlagged,
         updateProcessedImageScore,

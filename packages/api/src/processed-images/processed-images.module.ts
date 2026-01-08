@@ -2,6 +2,7 @@ import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProcessedImagesController } from './processed-images.controller';
 import { ProcessedImagesService } from './processed-images.service';
+import { MigrationService } from './migration.service';
 import { StorageModule } from '../storage/storage.module';
 import { AppConfigModule } from '../config/app-config.module';
 import { ProcessedImage } from '../database/entities/processed-image.entity';
@@ -18,6 +19,7 @@ import { NonCloudGuard } from '../guards/non-cloud.guard';
         AppConfigModule,
     ],
     controllers: [ProcessedImagesController],
-    providers: [ProcessedImagesService, NonCloudGuard, Logger],
+    providers: [ProcessedImagesService, MigrationService, NonCloudGuard, Logger],
+    exports: [MigrationService],
 })
 export class ProcessedImagesModule {}

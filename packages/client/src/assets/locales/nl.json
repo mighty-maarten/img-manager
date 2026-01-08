@@ -13,7 +13,14 @@
         "table": {
             "name": "Naam",
             "createdOn": "Aangemaakt op",
-            "actions": "Acties"
+            "actions": "Acties",
+            "sync": "Synchroniseren"
+        },
+        "sync": {
+            "tooltip": "Verwerkte afbeeldingen synchroniseren voor dit label",
+            "success": "{processed} afbeeldingen gesynchroniseerd, {skipped} overgeslagen",
+            "error": "{processed} afbeeldingen gesynchroniseerd, {skipped} overgeslagen, {failed} mislukt",
+            "errorGeneric": "Synchroniseren van afbeeldingen voor dit label mislukt"
         },
         "add": {
             "title": "Label Aanmaken",
