@@ -18,12 +18,24 @@ echo "[$(date)] Setting file permissions..."
 sudo chown -R ec2-user:ec2-user "$APP_DIR"
 sudo chmod -R 755 "$APP_DIR"
 
+# Extract node_modules from tarball
+echo "[$(date)] Extracting node_modules from tarball..."
+if [ -f "$APP_DIR/node_modules.tar.gz" ]; then
+    cd "$APP_DIR"
+    tar -xzf node_modules.tar.gz
+    rm node_modules.tar.gz
+    echo "[$(date)] ✓ node_modules extracted successfully"
+else
+    echo "[$(date)] ✗ ERROR: node_modules.tar.gz not found!"
+    exit 1
+fi
+
 # Verify node_modules exist (workspace setup - dependencies in root)
 echo "[$(date)] Verifying dependencies..."
 if [ -d "$APP_DIR/node_modules" ]; then
     echo "[$(date)] ✓ Dependencies found in root node_modules (workspace setup)"
 else
-    echo "[$(date)] ✗ ERROR: node_modules not found!"
+    echo "[$(date)] ✗ ERROR: node_modules not found after extraction!"
     exit 1
 fi
 

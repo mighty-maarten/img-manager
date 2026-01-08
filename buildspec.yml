@@ -39,11 +39,14 @@ phases:
     commands:
       - echo "Post build started on $(date)"
       - echo "Creating deployment package..."
+      - echo "Creating node_modules tarball to preserve all files..."
+      - tar -czf node_modules.tar.gz node_modules
+      - echo "node_modules tarball created ($(du -h node_modules.tar.gz | cut -f1))"
       - echo "Post build completed on $(date)"
 artifacts:
   files:
     - appspec.yml
-    - node_modules/**/*
+    - node_modules.tar.gz
     - packages/api/dist/**/*
     - packages/api/package.json
     - packages/api/database/**/*
