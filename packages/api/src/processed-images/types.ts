@@ -136,27 +136,3 @@ export class UpdateProcessedImageScoreContract {
     @Max(5)
     public score?: number;
 }
-
-export class MigrationResultContract {
-    @ApiProperty({ description: 'Number of images successfully migrated' })
-    public migrated: number;
-
-    @ApiProperty({ description: 'Number of images skipped' })
-    public skipped: number;
-
-    @ApiProperty({ description: 'Number of images that failed to migrate' })
-    public failed: number;
-
-    @ApiProperty({
-        type: [String],
-        description: 'Array of error messages for failed migrations',
-    })
-    public errors: string[];
-
-    constructor(migrated: number, skipped: number, failed: number, errors: string[]) {
-        this.migrated = migrated;
-        this.skipped = skipped;
-        this.failed = failed;
-        this.errors = errors;
-    }
-}
