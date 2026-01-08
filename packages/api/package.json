@@ -23,11 +23,10 @@
         "db:init:local": "npm run build:local && NODE_ENV=local node dist/database/index.js -i",
         "db:setup:local": "npm run build:local && NODE_ENV=local node dist/database/index.js -i -m -s",
         "db:migrate:local": "npm run build:local && NODE_ENV=local node dist/database/index.js -m",
-        "migrate:processed-images": "npm run build && NODE_ENV=local node dist/src/processed-images/migrate-cli.js",
         "rename:s3": "npx ts-node -r tsconfig-paths/register scripts/rename-s3-objects.ts"
     },
     "dependencies": {
-        "@aws-sdk/client-s3": "^3.922.0",
+        "@aws-sdk/client-s3": "^3.965.0",
         "@aws-sdk/client-secrets-manager": "^3.872.0",
         "@aws-sdk/client-sns": "^3.679.0",
         "@aws-sdk/s3-request-presigner": "^3.922.0",
