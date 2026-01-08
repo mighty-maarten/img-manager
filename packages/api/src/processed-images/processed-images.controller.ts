@@ -15,7 +15,6 @@ import {
     ApiOperation,
     ApiResponse,
     ApiParam,
-    ApiDeprecated,
 } from '@nestjs/swagger';
 import { ProcessedImagesService } from './processed-images.service';
 import {
@@ -152,12 +151,13 @@ export class ProcessedImagesController {
      * @deprecated Use syncProcessedImagesByLabel instead. This endpoint will be removed in a future version.
      */
     @Post('sync')
-    @ApiDeprecated()
     @ApiOperation({
-        summary: 'Sync all processed images (deprecated)',
+        summary: 'Sync all processed images (DEPRECATED)',
         description:
-            'Scans the entire /processed folder in S3 and syncs all processed images to the database. ' +
-            'This endpoint is deprecated. Use POST /api/processed-images/sync/:labelId instead to sync images for a specific label.',
+            '⚠️ DEPRECATED: This endpoint is deprecated and will be removed in a future version. ' +
+            'Use POST /api/processed-images/sync/:labelId instead to sync images for a specific label. ' +
+            'Scans the entire /processed folder in S3 and syncs all processed images to the database.',
+        deprecated: true,
     })
     @ApiResponse({
         status: 200,
