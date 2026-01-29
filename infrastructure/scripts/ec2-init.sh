@@ -317,7 +317,6 @@ http {
 
         # Proxy to Node.js application
         location / {
-            # Check if application is running on port 3000, otherwise show placeholder
             proxy_pass http://127.0.0.1:3000;
             proxy_http_version 1.1;
             proxy_set_header Upgrade \$http_upgrade;
@@ -327,6 +326,11 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
             proxy_cache_bypass \$http_upgrade;
+            
+            # Increase timeouts for long-running operations (e.g., image sync)
+            proxy_connect_timeout 300s;
+            proxy_send_timeout 300s;
+            proxy_read_timeout 300s;
             
             # Fallback for when application is not yet deployed
             error_page 502 503 504 @fallback;
