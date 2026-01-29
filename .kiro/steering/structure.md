@@ -9,16 +9,15 @@ img-manager/
 │   │   │   ├── collections/    # Collections CRUD + scraping
 │   │   │   ├── config/         # App configuration service
 │   │   │   ├── database/       # Entity definitions
-│   │   │   ├── error-filters/  # Global error handling
 │   │   │   ├── guards/         # Auth guards
-│   │   │   ├── labels/         # Labels CRUD
-│   │   │   ├── logging/        # Winston logger setup
-│   │   │   ├── middlewares/    # Express middlewares
+│   │   │   ├── labels/         # Labels module
 │   │   │   ├── processed-images/ # Processed images module
 │   │   │   ├── scraping/       # Web scraping service
-│   │   │   ├── storage/        # File storage (S3/local)
-│   │   │   ├── users/          # Users CRUD
-│   │   │   └── utils/          # Utility functions
+│   │   │   ├── storage/        # File storage abstraction
+│   │   │   ├── users/          # Users module
+│   │   │   ├── app.module.ts   # Root module
+│   │   │   ├── main.ts         # Bootstrap
+│   │   │   └── routes.ts       # Route tree definitions
 │   │   ├── database/           # DB setup, migrations, seeds
 │   │   │   ├── files/
 │   │   │   │   ├── definitions/  # Schema SQL
@@ -29,24 +28,23 @@ img-manager/
 │   │
 │   └── client/                 # Vue 3 frontend
 │       ├── src/
-│       │   ├── api/            # HTTP client & services
-│       │   ├── components/     # Vue components
+│       │   ├── api/            # HTTP client + service classes
+│       │   ├── components/     # Reusable Vue components
 │       │   ├── composables/    # Vue composables
 │       │   ├── layouts/        # Page layouts
-│       │   ├── plugins/        # Vue plugins (i18n, PrimeVue)
+│       │   ├── plugins/        # Vue plugins (i18n, primevue)
 │       │   ├── router/         # Vue Router config
 │       │   ├── stores/         # Pinia stores
-│       │   ├── styles/         # SCSS styles
-│       │   ├── types/          # TypeScript types
-│       │   ├── utils/          # Utility functions
-│       │   └── views/          # Page components
+│       │   ├── styles/         # Global SCSS
+│       │   ├── views/          # Page components
+│       │   └── main.ts         # App entry
 │       └── infrastructure/     # Client CDK stack (S3 hosting)
 │
 ├── infrastructure/             # Main CDK infrastructure
 │   ├── lib/                    # CDK stack definitions
-│   └── scripts/                # EC2 init scripts
+│   └── scripts/                # Deployment scripts
 │
-└── deploy/                     # Deployment scripts (CodeDeploy)
+└── deploy/                     # CodeDeploy scripts
 ```
 
 ## Module Pattern (API)
@@ -63,15 +61,13 @@ module-name/
 
 ## Entity Pattern
 
-Entities extend `BaseEntity` which provides:
-- `id` (UUID, auto-generated)
-- `createdOn` (timestamp)
-- `modifiedOn` (timestamp, auto-updated)
+- All entities extend `BaseEntity` (id, createdOn, lastUpdatedOn)
+- Located in `packages/api/src/database/entities/`
+- Use TypeORM decorators with snake_case naming strategy
 
-## Naming Conventions
+## Store Pattern (Client)
 
-- **Files**: kebab-case (`collection.entity.ts`, `jwt-auth.guard.ts`)
-- **Classes**: PascalCase (`CollectionsService`, `JwtAuthGuard`)
-- **Database**: snake_case (handled by TypeORM SnakeNamingStrategy)
-- **API Routes**: kebab-case, prefixed with `/api`
-- **Contract classes**: Suffix with `Contract` for DTOs
+Pinia stores use Composition API style with:
+- `useStoreCreationUtils` for consistent loading/error state
+- Async actions wrapped in `handleAction` for error handling
+- Reactive refs for state

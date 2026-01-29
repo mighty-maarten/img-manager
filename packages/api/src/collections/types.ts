@@ -5,6 +5,12 @@ import { ProcessingRun } from '../database/entities/processing-run.entity';
 import { LabelContract } from '../labels/types';
 import { ImageSizePreset, ScrapingMode } from '../scraping/types';
 
+export enum ProcessedFilter {
+    ALL = 'all',
+    NONE = 'none',
+    PARTIAL = 'partial',
+}
+
 export class ProcessingRunContract {
     @ApiProperty()
     public id: string;

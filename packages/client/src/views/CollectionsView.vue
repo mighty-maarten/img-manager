@@ -13,6 +13,7 @@ import { useToastMessages } from '@/composables/toast';
 import { useCollectionDownload } from '@/composables/collection-download';
 import { CollectionService } from '@/api/services/collection';
 import type { Collection, ProcessingRun } from '@/api/services/types/collection';
+import { ProcessedFilter } from '@/api/services/types/collection';
 
 const collectionsStore = useCollectionsStore();
 const labelsStore = useLabelsStore();
@@ -52,8 +53,9 @@ const storedFilterOptions = ref([
 
 const processedFilterOptions = ref([
     { label: t('collections.filter.notSet'), value: null },
-    { label: t('collections.process.status.processed'), value: true },
-    { label: t('collections.process.status.notProcessed'), value: false },
+    { label: t('collections.process.status.all'), value: ProcessedFilter.ALL },
+    { label: t('collections.process.status.partial'), value: ProcessedFilter.PARTIAL },
+    { label: t('collections.process.status.none'), value: ProcessedFilter.NONE },
 ]);
 
 // Fetch collections with current pagination/sort settings

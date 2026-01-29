@@ -22,6 +22,7 @@ import {
     CollectionDownloadUrlsContract,
     CreateCollectionsContract,
     CreateCollectionsResultContract,
+    ProcessedFilter,
     ScrapeCollectionContract,
     UpdateCollectionContract,
 } from './types';
@@ -59,7 +60,7 @@ export class CollectionsService {
         sort?: SortMeta,
         scraped?: boolean,
         stored?: boolean,
-        processed?: boolean,
+        processed?: ProcessedFilter,
         labelIds?: string[],
     ): Promise<PagedResult<CollectionContract>> {
         const queryBuilder = this.collectionRepository
@@ -88,17 +89,22 @@ export class CollectionsService {
                 queryBuilder.andWhere('scrape.stored = :stored', { stored: false });
             }
         }
-
-        // Apply processed filter
+        
         if (processed !== undefined) {
-            if (processed) {
-                queryBuilder.andWhere(
-                    'EXISTS (SELECT 1 FROM processing_runs pr WHERE pr.collection_id = collection.id)',
-                );
-            } else {
-                queryBuilder.andWhere(
-                    'NOT EXISTS (SELECT 1 FROM processing_runs pr WHERE pr.collection_id = collection.id)',
-                );
+            const labelCountSubquery = `(SELECT COUNT(*) FROM collections_labels cl WHERE cl.collection_id = collection.id)`;
+            const runCountSubquery = `(SELECT COUNT(*) FROM processing_runs pr WHERE pr.collection_id = collection.id)`;
+
+            if (processed === ProcessedFilter.ALL) {
+                // All labels have processing runs (and has at least one label)
+                queryBuilder.andWhere(`${labelCountSubquery} > 0`);
+                queryBuilder.andWhere(`${labelCountSubquery} = ${runCountSubquery}`);
+            } else if (processed === ProcessedFilter.NONE) {
+                // No processing runs at all
+                queryBuilder.andWhere(`${runCountSubquery} = 0`);
+            } else if (processed === ProcessedFilter.PARTIAL) {
+                // Some but not all labels have processing runs
+                queryBuilder.andWhere(`${runCountSubquery} > 0`);
+                queryBuilder.andWhere(`${labelCountSubquery} > ${runCountSubquery}`);
             }
         }
 

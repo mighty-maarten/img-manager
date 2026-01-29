@@ -143,7 +143,10 @@
         "process": {
             "status": {
                 "processed": "Ja",
-                "notProcessed": "Nee"
+                "notProcessed": "Nee",
+                "all": "Alle labels",
+                "partial": "Gedeeltelijk",
+                "none": "Geen"
             }
         }
     },

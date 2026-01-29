@@ -148,7 +148,10 @@
         "process": {
             "status": {
                 "processed": "Yes",
-                "notProcessed": "No"
+                "notProcessed": "No",
+                "all": "All labels",
+                "partial": "Partial",
+                "none": "None"
             }
         }
     },

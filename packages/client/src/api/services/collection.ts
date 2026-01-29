@@ -28,8 +28,8 @@ export class CollectionService {
             searchParams.append('stored', JSON.stringify(query.stored));
         }
 
-        if (query?.processed === true || query?.processed === false) {
-            searchParams.append('processed', JSON.stringify(query.processed));
+        if (query?.processed) {
+            searchParams.append('processed', query.processed);
         }
 
         if (query?.labelIds) {

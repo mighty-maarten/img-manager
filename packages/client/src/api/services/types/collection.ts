@@ -87,13 +87,19 @@ export interface SortMeta {
     order: 1 | -1;
 }
 
+export enum ProcessedFilter {
+    ALL = 'all',
+    NONE = 'none',
+    PARTIAL = 'partial',
+}
+
 export type GetCollectionsQuery = {
     take?: number;
     skip?: number;
     sort?: SortMeta;
     scraped?: boolean;
     stored?: boolean;
-    processed?: boolean;
+    processed?: ProcessedFilter;
     labelIds?: string;
 };
 

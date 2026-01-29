@@ -19,6 +19,7 @@ import {
     CollectionDownloadUrlsContract,
     CreateCollectionsContract,
     CreateCollectionsResultContract,
+    ProcessedFilter,
     ScrapeCollectionContract,
     UpdateCollectionContract,
 } from './types';
@@ -48,7 +49,7 @@ export class CollectionsController {
         @Query('sort') sort?: string,
         @Query('scraped') scraped?: boolean,
         @Query('stored') stored?: boolean,
-        @Query('processed') processed?: boolean,
+        @Query('processed') processed?: string,
         @Query('labelIds') labelIds?: string,
     ): Promise<PagedResult<CollectionContract>> {
         let sortObject;
@@ -66,13 +67,20 @@ export class CollectionsController {
                   .filter((id) => id.length > 0)
             : undefined;
 
+        // Validate processed filter value
+        if (processed && !Object.values(ProcessedFilter).includes(processed as ProcessedFilter)) {
+            throw new BadRequestException(
+                `Invalid processed filter value. Must be one of: ${Object.values(ProcessedFilter).join(', ')}`,
+            );
+        }
+
         return this.collectionsService.getCollections(
             take,
             skip,
             sortObject,
             scraped,
             stored,
-            processed,
+            processed as ProcessedFilter | undefined,
             labelIdsArray,
         );
     }

@@ -1,22 +1,26 @@
 # Product Overview
 
-img-manager is a web application for managing, scraping, and processing images from web sources.
+img-manager is an image management application for scraping, storing, and processing images from web sources.
 
 ## Core Features
 
-- **Collections**: Group and organize image sources by URL with labels
-- **Web Scraping**: Extract images from web pages with configurable size presets and scraping modes
-- **Image Storage**: Store scraped images in S3 with deduplication via content hashing
-- **Image Processing**: Process stored images through configurable processing runs
-- **Labels**: Categorize collections with custom labels
-- **User Authentication**: JWT-based authentication with role-based access
+- **Collections**: Group URLs for batch image scraping with label organization
+- **Scraping**: Extract images from web pages with configurable size presets and modes
+- **Storage**: Store scraped images in S3 with deduplication via content hashing
+- **Processing**: Run image processing pipelines on stored images
+- **Labels**: Organize collections with customizable labels
 
-## Domain Concepts
+## User Workflow
 
-- **Collection**: A URL source containing images, associated with labels
-- **Scrape**: A scraping operation result containing extracted image metadata
-- **ScrapedImage**: Metadata for an image found during scraping
-- **Image**: A stored image file with hash-based deduplication
-- **ProcessedImage**: An image that has been processed (e.g., resized, converted)
-- **ProcessingRun**: A batch processing operation on a collection
-- **Label**: A tag for categorizing collections
+1. Create collections by providing URLs and assigning labels
+2. Scrape collections to extract image metadata
+3. Store scraped images to S3 (deduplicated by hash)
+4. Process stored images through configured pipelines
+5. Download or view processed results
+
+## Architecture
+
+- Monorepo with separate client (Vue) and API (NestJS) packages
+- PostgreSQL database for metadata
+- S3 for image storage (local filesystem in development)
+- JWT-based authentication

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { useStoreCreationUtils } from './util';
 import { CollectionService } from '@/api/services/collection';
 import type { Collection, UpdateCollectionRequest, ScrapeCollectionRequest, ScrapeResult, CreateCollectionsContract, CreateCollectionsResultContract, GetCollectionsQuery } from '@/api/services/types/collection';
+import { ProcessedFilter } from '@/api/services/types/collection';
 import { ref } from 'vue';
 
 export const useCollectionsStore = defineStore('collections', () => {
@@ -24,7 +25,7 @@ export const useCollectionsStore = defineStore('collections', () => {
     // Filter state
     const scrapedFilter = ref<boolean | null>(null);
     const storedFilter = ref<boolean | null>(null);
-    const processedFilter = ref<boolean | null>(null);
+    const processedFilter = ref<ProcessedFilter | null>(null);
     const labelsFilter = ref<string[]>([]);
 
     async function fetchCollections(query?: GetCollectionsQuery): Promise<void> {
@@ -111,7 +112,7 @@ export const useCollectionsStore = defineStore('collections', () => {
     }
 
     // Update filter state
-    function updateFilters(scraped: boolean | null, stored: boolean | null, processed: boolean | null, labels?: string[]): void {
+    function updateFilters(scraped: boolean | null, stored: boolean | null, processed: ProcessedFilter | null, labels?: string[]): void {
         scrapedFilter.value = scraped;
         storedFilter.value = stored;
         processedFilter.value = processed;
