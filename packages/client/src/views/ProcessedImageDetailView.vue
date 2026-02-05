@@ -194,7 +194,7 @@ watch(() => route.params.id, async (newId) => {
                         v-tooltip.bottom="t('processedImages.detail.toggleHidden')"
                     />
                     <Button
-                        :icon="Icons.flag"
+                        :icon="currentImage.flagged ? Icons.flagFill : Icons.flag"
                         :severity="currentImage.flagged ? 'warning' : 'secondary'"
                         text
                         rounded

@@ -197,7 +197,7 @@ async function toggleFlagged(imageId: string, currentFlaggedState: boolean) {
                                 v-tooltip.bottom="t('processedImages.detail.toggleHidden')"
                             />
                             <Button
-                                :icon="Icons.flag"
+                                :icon="image.flagged ? Icons.flagFill : Icons.flag"
                                 :severity="image.flagged ? 'success' : 'secondary'"
                                 text
                                 rounded

@@ -23,5 +23,6 @@ export const Icons = {
     eye: 'pi pi-eye',
     eyeSlash: 'pi pi-eye-slash',
     flag: 'pi pi-flag',
+    flagFill: 'pi pi-flag-fill',
 } as const;
 

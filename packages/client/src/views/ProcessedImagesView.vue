@@ -184,7 +184,7 @@ onMounted(async () => {
                             v-tooltip.bottom="t('processedImages.detail.toggleHidden')"
                         />
                         <Button
-                            :icon="Icons.flag"
+                            :icon="image.flagged ? Icons.flagFill : Icons.flag"
                             :severity="image.flagged ? 'success' : 'secondary'"
                             text
                             rounded
